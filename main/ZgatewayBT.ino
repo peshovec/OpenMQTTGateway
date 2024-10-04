@@ -648,10 +648,11 @@ void procBLETask(void* pvParameters) {
           BLEdata["manufacturerdata"] = manufacturerdata;
           free(manufacturerdata);
         }
-        BLEdata["rssi"] = (int)advertisedDevice->getRSSI();
+        if (advertisedDevice->haveRSSI())
+          BLEdata["rssi"] = (int)advertisedDevice->getRSSI();
         if (advertisedDevice->haveTXPower())
           BLEdata["txpower"] = (int8_t)advertisedDevice->getTXPower();
-        if (BTConfig.presenceEnable) {
+        if (advertisedDevice->haveRSSI() && BTConfig.presenceEnable) {
           hass_presence(BLEdata); // this device has an rssi and with either only sensors or not we can use it for home assistant room presence component
         }
         if (advertisedDevice->haveServiceData()) {
@@ -693,7 +694,7 @@ void BLEscan() {
   Log.notice(F("Scan begin" CR));
   BLEScan* pBLEScan = BLEDevice::getScan();
   MyAdvertisedDeviceCallbacks myCallbacks;
-  pBLEScan->setScanCallbacks(&myCallbacks);
+  pBLEScan->setAdvertisedDeviceCallbacks(&myCallbacks);
   if ((millis() > (timeBetweenActive + BTConfig.intervalActiveScan) || BTConfig.intervalActiveScan == BTConfig.BLEinterval) && !BTConfig.forcePassiveScan) {
     pBLEScan->setActiveScan(true);
     timeBetweenActive = millis();
@@ -702,7 +703,7 @@ void BLEscan() {
   }
   pBLEScan->setInterval(BLEScanInterval);
   pBLEScan->setWindow(BLEScanWindow);
-  BLEScanResults foundDevices = pBLEScan->getResults(BTConfig.scanDuration / 1000, false);
+  BLEScanResults foundDevices = pBLEScan->start(BTConfig.scanDuration / 1000, false);
   if (foundDevices.getCount())
     scanCount++;
   Log.notice(F("Found %d devices, scan number %d end" CR), foundDevices.getCount(), scanCount);
