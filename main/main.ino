@@ -262,7 +262,8 @@ static int cnt_index = CNT_DEFAULT_INDEX;
 #ifdef ESP32
 #  include <ArduinoOTA.h>
 #  include <FS.h>
-#  include <SPIFFS.h>
+#  include <LittleFS.h>
+#  define SPIFFS LittleFS
 #  include <esp_task_wdt.h>
 #  include <nvs.h>
 #  include <nvs_flash.h>
