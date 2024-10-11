@@ -53,7 +53,7 @@ using namespace std;
 BTConfig_s BTConfig;
 
 #  if BLEDecoder
-#    include <decoder.h>
+#    include <BLEdecoder.h>
 TheengsDecoder decoder;
 #  endif
 
