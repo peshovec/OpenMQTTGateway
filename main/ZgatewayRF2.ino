@@ -51,6 +51,8 @@ struct RF2rxd {
   unsigned long unit;
   unsigned long switchType;
   bool hasNewData;
+  bool isDim;
+  byte dimlevel;
 };
 
 RF2rxd rf2rd;
@@ -113,6 +115,9 @@ void RF2toX() {
     RF2data["period"] = (int)rf2rd.period;
     RF2data["address"] = (unsigned long)rf2rd.address;
     RF2data["switchType"] = (int)rf2rd.switchType;
+    if (rf2rd.isDim) {
+       RF2data["dimLevel"] = (byte)rf2rd.dimlevel;
+    }
 #  ifdef ZmqttDiscovery //component creation for HA
     if (SYSConfig.discovery)
       RF2toMQTTdiscovery(RF2data);
@@ -122,13 +127,15 @@ void RF2toX() {
   }
 }
 
-void rf2Callback(unsigned int period, unsigned long address, unsigned long groupBit, unsigned long unit, unsigned long switchType) {
+void rf2Callback(unsigned int period, unsigned long address, unsigned long groupBit, unsigned long unit, unsigned long switchType, boolean DimLevelPresent, byte dimlevel) {
   rf2rd.period = period;
   rf2rd.address = address;
   rf2rd.groupBit = groupBit;
   rf2rd.unit = unit;
   rf2rd.switchType = switchType;
   rf2rd.hasNewData = true;
+  rf2rd.isDim = DimLevelPresent;
+  rf2rd.dimlevel = dimlevel;
 }
 
 #  if simpleReceiving
