@@ -24,9 +24,10 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "User_config.h"
-
 #ifdef ZmqttDiscovery
-
+#ifdef ESP32
+ #include "esp_mac.h"
+#endif
 String getMacAddress() {
   uint8_t baseMac[6];
   char baseMacChr[13] = {0};
