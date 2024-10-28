@@ -264,6 +264,7 @@ static int cnt_index = CNT_DEFAULT_INDEX;
 #  include <FS.h>
 #  include <LittleFS.h>
 #  define SPIFFS LittleFS
+#  define byte uint8_t
 #  include <esp_task_wdt.h>
 #  include <nvs.h>
 #  include <nvs_flash.h>
