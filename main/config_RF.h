@@ -144,14 +144,15 @@ const char parameters[51][4][24] = {
 #endif
 /*-------------------RF topics & parameters----------------------*/
 //433Mhz MQTT Subjects and keys
-#define subjectMQTTtoRF       "/commands/MQTTto433"
-#define subjectRFtoMQTT       "/433toMQTT"
-#define subjectcommonRFtoMQTT "/RFtoMQTT"
-#define subjectGTWRFtoMQTT    "/433toMQTT"
-#define RFprotocolKey         "433_" // protocol will be defined if a subject contains RFprotocolKey followed by a value of 1 digit
-#define RFbitsKey             "RFBITS_" // bits  will be defined if a subject contains RFbitsKey followed by a value of 2 digits
-#define repeatRFwMQTT         false // do we repeat a received signal by using MQTT with RF gateway
-#define RFpulselengthKey      "PLSL_" // pulselength will be defined if a subject contains RFprotocolKey followed by a value of 3 digits
+#define subjectMQTTtoRF              "/commands/MQTTto433"
+#define subjectRFtoMQTT              "/433toMQTT"
+#define subjectRFtoMQTTvalueAsATopic "/433toMQTT/#"
+#define subjectcommonRFtoMQTT        "/RFtoMQTT"
+#define subjectGTWRFtoMQTT           "/433toMQTT"
+#define RFprotocolKey                "433_" // protocol will be defined if a subject contains RFprotocolKey followed by a value of 1 digit
+#define RFbitsKey                    "RFBITS_" // bits  will be defined if a subject contains RFbitsKey followed by a value of 2 digits
+#define repeatRFwMQTT                false // do we repeat a received signal by using MQTT with RF gateway
+#define RFpulselengthKey             "PLSL_" // pulselength will be defined if a subject contains RFprotocolKey followed by a value of 3 digits
 // subject monitored to listen traffic processed by other gateways to store data and avoid ntuple
 #define subjectMultiGTWRF "+/+/433toMQTT"
 //RF number of signal repetition - Can be overridden by specifying "repeat" in a JSON message.
@@ -162,22 +163,24 @@ const char parameters[51][4][24] = {
 
 /*-------------------RF2 topics & parameters----------------------*/
 //433Mhz newremoteswitch MQTT Subjects and keys
-#define subjectMQTTtoRF2    "/commands/MQTTtoRF2"
-#define subjectRF2toMQTT    "/RF2toMQTT"
-#define subjectGTWRF2toMQTT "/RF2toMQTT"
-#define RF2codeKey          "ADDRESS_" // code will be defined if a subject contains RF2codeKey followed by a value of 7 digits
-#define RF2periodKey        "PERIOD_" // period  will be defined if a subject contains RF2periodKey followed by a value of 3 digits
-#define RF2unitKey          "UNIT_" // number of your unit value  will be defined if a subject contains RF2unitKey followed by a value of 1-2 digits
-#define RF2groupKey         "GROUP_" // number of your group value  will be defined if a subject contains RF2groupKey followed by a value of 1 digit
-#define RF2dimKey           "DIM" // number of your dim value will be defined if a subject contains RF2dimKey and the payload contains the dim value as digits
+#define subjectMQTTtoRF2              "/commands/MQTTtoRF2"
+#define subjectRF2toMQTT              "/RF2toMQTT"
+#define subjectRF2toMQTTvalueAsATopic "/RF2toMQTT/#"
+#define subjectGTWRF2toMQTT           "/RF2toMQTT"
+#define RF2codeKey                    "ADDRESS_" // code will be defined if a subject contains RF2codeKey followed by a value of 7 digits
+#define RF2periodKey                  "PERIOD_" // period  will be defined if a subject contains RF2periodKey followed by a value of 3 digits
+#define RF2unitKey                    "UNIT_" // number of your unit value  will be defined if a subject contains RF2unitKey followed by a value of 1-2 digits
+#define RF2groupKey                   "GROUP_" // number of your group value  will be defined if a subject contains RF2groupKey followed by a value of 1 digit
+#define RF2dimKey                     "DIM" // number of your dim value will be defined if a subject contains RF2dimKey and the payload contains the dim value as digits
 
 /*-------------------ESPPiLight topics & parameters----------------------*/
 //433Mhz Pilight MQTT Subjects and keys
-#define subjectMQTTtoPilight         "/commands/MQTTtoPilight"
-#define subjectMQTTtoPilightProtocol "/commands/MQTTtoPilight/protocols"
-#define subjectPilighttoMQTT         "/PilighttoMQTT"
-#define subjectGTWPilighttoMQTT      "/PilighttoMQTT"
-#define repeatPilightwMQTT           false // do we repeat a received signal by using MQTT with Pilight gateway
+#define subjectMQTTtoPilight              "/commands/MQTTtoPilight"
+#define subjectMQTTtoPilightProtocol      "/commands/MQTTtoPilight/protocols"
+#define subjectPilighttoMQTT              "/PilighttoMQTT"
+#define subjectPilighttoMQTTvalueAsATopic "/PilighttoMQTT/#"
+#define subjectGTWPilighttoMQTT           "/PilighttoMQTT"
+#define repeatPilightwMQTT                false // do we repeat a received signal by using MQTT with Pilight gateway
 //#define Pilight_rawEnabled true   // enables Pilight RAW return - switchable via MQTT
 
 /*-------------------RTL_433 topics & parameters----------------------*/
