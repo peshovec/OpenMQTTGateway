@@ -146,6 +146,7 @@ const char parameters[51][4][24] = {
 //433Mhz MQTT Subjects and keys
 #define subjectMQTTtoRF       "/commands/MQTTto433"
 #define subjectRFtoMQTT       "/433toMQTT"
+#define subjectRFtoMQTTvalueAsATopic       "/433toMQTT/#"
 #define subjectcommonRFtoMQTT "/RFtoMQTT"
 #define subjectGTWRFtoMQTT    "/433toMQTT"
 #define RFprotocolKey         "433_" // protocol will be defined if a subject contains RFprotocolKey followed by a value of 1 digit
@@ -164,6 +165,7 @@ const char parameters[51][4][24] = {
 //433Mhz newremoteswitch MQTT Subjects and keys
 #define subjectMQTTtoRF2    "/commands/MQTTtoRF2"
 #define subjectRF2toMQTT    "/RF2toMQTT"
+#define subjectRF2toMQTTvalueAsATopic    "/RF2toMQTT/#"
 #define subjectGTWRF2toMQTT "/RF2toMQTT"
 #define RF2codeKey          "ADDRESS_" // code will be defined if a subject contains RF2codeKey followed by a value of 7 digits
 #define RF2periodKey        "PERIOD_" // period  will be defined if a subject contains RF2periodKey followed by a value of 3 digits
@@ -176,6 +178,7 @@ const char parameters[51][4][24] = {
 #define subjectMQTTtoPilight         "/commands/MQTTtoPilight"
 #define subjectMQTTtoPilightProtocol "/commands/MQTTtoPilight/protocols"
 #define subjectPilighttoMQTT         "/PilighttoMQTT"
+#define subjectPilighttoMQTTvalueAsATopic         "/PilighttoMQTT/#"
 #define subjectGTWPilighttoMQTT      "/PilighttoMQTT"
 #define repeatPilightwMQTT           false // do we repeat a received signal by using MQTT with Pilight gateway
 //#define Pilight_rawEnabled true   // enables Pilight RAW return - switchable via MQTT
