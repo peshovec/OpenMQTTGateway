@@ -1075,7 +1075,12 @@ void pubMqttDiscovery() {
 
   //trc(gatewayRF[1]);
   createDiscovery(gatewayRF[0],
-                  subjectRFtoMQTT, gatewayRF[1], (char*)getUniqueId(gatewayRF[1], gatewayRF[2]).c_str(),
+#    if valueAsATopic
+                  subjectRFtoMQTTvalueAsATopic,
+#    else
+                  subjectRFtoMQTT,
+#    endif
+                  gatewayRF[1], (char*)getUniqueId(gatewayRF[1], gatewayRF[2]).c_str(),
                   will_Topic, gatewayRF[3], gatewayRF[4],
                   gatewayRF[5], gatewayRF[6], gatewayRF[7],
                   0, Gateway_AnnouncementMsg, will_Message, true, "",
@@ -1093,7 +1098,12 @@ void pubMqttDiscovery() {
 
   //trc(gatewayRF2[1]);
   createDiscovery(gatewayRF2[0],
-                  subjectRF2toMQTT, gatewayRF2[1], (char*)getUniqueId(gatewayRF2[1], gatewayRF2[2]).c_str(),
+#    if valueAsATopic
+                  subjectRF2toMQTTvalueAsATopic,
+#    else
+                  subjectRF2toMQTT,
+#    endif
+                  gatewayRF2[1], (char*)getUniqueId(gatewayRF2[1], gatewayRF2[2]).c_str(),
                   will_Topic, gatewayRF2[3], gatewayRF2[4],
                   gatewayRF2[5], gatewayRF2[6], gatewayRF2[7],
                   0, Gateway_AnnouncementMsg, will_Message, true, "",
@@ -1194,7 +1204,12 @@ void pubMqttDiscovery() {
 
   //trc(gatewayPilight[1]);
   createDiscovery(gatewayPilight[0],
-                  subjectPilighttoMQTT, gatewayPilight[1], (char*)getUniqueId(gatewayPilight[1], gatewayPilight[2]).c_str(),
+#    if valueAsATopic
+                  subjectPilighttoMQTTvalueAsATopic,
+#    else
+                  subjectPilighttoMQTT,
+#    endif
+                  gatewayPilight[1], (char*)getUniqueId(gatewayPilight[1], gatewayPilight[2]).c_str(),
                   will_Topic, gatewayPilight[3], gatewayPilight[4],
                   gatewayPilight[5], gatewayPilight[6], gatewayPilight[7],
                   0, Gateway_AnnouncementMsg, will_Message, true, "",
