@@ -1,0 +1,115 @@
+[platformio]
+default_envs = esp32-rfall
+
+#### define my libraries, without changeing the upstream libraries definition - use in libdeps both of the sets
+[mylibraries]
+picomqtt = PicoMQTT@1.1.2
+arduinojson = ArduinoJson@7.2.1
+arduinolog = https://github.com/thijse/Arduino-Log.git#3f4fcf5
+ble = https://github.com/h2zero/NimBLE-Arduino.git#release/1.5
+######ble = https://github.com/h2zero/NimBLE-Arduino.git#a79941c
+wifimanager32 = https://github.com/tzapu/WiFiManager.git#v2.0.17
+#decoder = https://github.com/theengs/decoder.git#v1.7.8
+#decoder = https://github.com/theengs/decoder.git#fbc16b8fc3fd4a23102deb4c853bb68a0784238a
+### renme decoder.h to BLEdecoder.h and bump arduijson to 7.2.0 - has to renmame include decoder.h to BLEdecoder.h in ZGatewayBT.ino
+BLEdecoder = https://github.com/peshovec/BLEdecoder.git#rtl-json-rebase-24
+#newremoteswitch = https://github.com/1technophile/NewRemoteSwitch.git#de4361e20c7476446bb2c628fc63f6006f9605ab
+### uptream newremote - modified callback - there is dim info in it - has to adapt openmqttgatway newremtoe in the rfcallback definition
+newremoteswitch = https://github.com/1technophile/NewRemoteSwitch.git#c3ca4cb5f4171245306bd719d37c98381949e248
+#esppilight = https://github.com/puuu/ESPiLight.git#release
+#### bump pilight to newer version , should include new protos, as well memory fixes - had to make update - and patch mem.c cause backtrace
+esppilight = https://github.com/peshovec/ESPiLight.git#pilight-to-upstream
+#rtl_433_ESP = https://github.com/NorthernMan54/rtl_433_ESP.git#v0.3.3
+#rtl_433_ESP = symlink:///tmp/rtl_433_ESP 
+#rtl_433_ESP = https://github.com/peshovec/rtl_433_ESP.git#update-script-test-for-PR
+#apply patch ~/openmqtt-rtl-rena...
+
+[env:esp32-rfall]
+#### 6.7.0 is the latest which is ok with patched libbtma.a
+platform = espressif32@6.7.0
+#platform = https://github.com/pioarduino/platform-espressif32/releases/download/51.03.06/platform-espressif32.zip
+#platform = https://github.com/pioarduino/platform-espressif32/releases/download/2024.07.00/platform-espressif32.zip
+##platform_packages = 
+##  framework-arduinoespressif32 @ https://github.com/espressif/arduino-esp32.git#release/v3.1.x
+board = esp32dev
+#board_build.partitions = min_spiffs.csv
+#### partitions - min_spiffs is ok if undef webui (when using ble, rtl, rf, rf2, pilight)
+board_build.partitions = partitions/min_spiffs.csv
+####board_build.partitions = partitions/min_spiffs-nocore.csv
+extra_scripts = ${com-esp32.extra_scripts}
+lib_deps =
+##  ${com-esp32.lib_deps}
+  ${libraries.rc-switch}
+  ${mylibraries.wifimanager32}
+  ${mylibraries.picomqtt}
+  ${mylibraries.arduinojson}
+  ${mylibraries.arduinolog}
+  ${mylibraries.newremoteswitch}
+  ${mylibraries.esppilight}
+  ${mylibraries.ble}
+  ${mylibraries.BLEdecoder}
+  ${libraries.smartrc-cc1101-driver-lib}
+  ${libraries.rtl_433_ESP}
+build_flags =
+  ${com-esp32.build_flags}
+  '-DPRIVATE_CERTS="true"'
+####  '-DZgatewayRF2="RF2"'
+####  '-DZgatewayRF="RF"'
+####  '-DZgatewayPilight="Pilight"'
+  '-DPilight_rawEnabled'
+  '-DZgatewayRTL_433="rtl_433"'
+###  '-DOOK_MODULATION=false'
+  '-DZmqttDiscovery'
+####  '-DZradioCC1101="CC1101"'
+  '-DRF_CC1101="CC1101"'
+  '-DRF_MODULE_GDO0=12'
+  '-DRF_MODULE_GDO2=27'
+  '-DRF_MODULE_SCK=18'
+  '-DRF_MODULE_MISO=19'
+  '-DRF_MODULE_MOSI=23'
+  '-DRF_MODULE_CS=5'
+  '-DRF_MODULE_INIT_STATUS=true'
+  '-DZgatewayBT="BT"'
+  '-DGateway_Name="espdevcho"'
+  '-DMQTT_SERVER="192.168.1.34"'
+#  '-DMQTT_SERVER="mqtt.192.168.1.34.sslip.io"'
+  '-DMQTT_USER="muser"'
+  '-DMQTT_PASS="mpass"'
+  '-DMQTT_PORT="8883"'
+  '-DMQTT_SECURE_DEFAULT=true'
+#allow that for ca publish in secure client  '-DMQTT_CERT_VALIDATE_DEFAULT=true'
+  '-DMQTT_CERT_VALIDATE_DEFAULT=true'
+  '-DMQTT_SECURE_SIGNED_CLIENT=true'
+  '-DESPWifiManualSetup=true'
+  '-Dwifi_ssid="homedjjl"'
+  '-Dwifi_password="homed_aes_fonle_8"'
+  '-DNetworkAdvancedSetup=true'
+  '-DNET_IP="192.168.1.11"'
+  '-DNET_MASK="255.255.255.0"'
+  '-DNET_GW="192.168.1.1"'
+  '-DNET_DNS="1.1.1.1"'
+  '-Dgw_password="espdevcho"'
+#  '-DLOG_LEVEL=LOG_LEVEL_TRACE'
+#  '-Dmessage_UTCtimestamp=true'
+#  '-DOMG_VERSION="devel"'
+  '-DvalueAsATopic=true'
+  '-UMQTT_HTTPS_FW_UPDATE'
+  '-DEnableBT=false'
+  '-DHassPresence=true'
+  '-DpubBLEAdvData=true'
+  '-Ddiscovery_republish_on_reconnect=true'
+  '-UZwebUI="WebUI"' ; Disable WebUI
+  '-UMQTTsetMQTT'
+  '-DDisableLedStatus'
+#  '-DESP32'
+
+
+[env:esp32-rfall-ota]
+extends = env:esp32-rfall
+upload_protocol = espota
+upload_port = 192.168.1.11
+upload_speed = 512000
+upload_flags =
+    --auth=OTAPASSWORD
+    --port=8266
+
