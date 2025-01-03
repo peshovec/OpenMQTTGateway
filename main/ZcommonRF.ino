@@ -36,6 +36,10 @@ void initCC1101() {
   int delayMS = 16;
   int delayMaxMS = 500;
   for (int i = 0; i < 10; i++) {
+#    if defined(RF_MODULE_SCK) && defined(RF_MODULE_MISO) && \
+        defined(RF_MODULE_MOSI) && defined(RF_MODULE_CS)
+    ELECHOUSE_cc1101.setSpiPin(RF_MODULE_SCK, RF_MODULE_MISO, RF_MODULE_MOSI, RF_MODULE_CS);
+#    endif
     if (ELECHOUSE_cc1101.getCC1101()) {
       Log.notice(F("C1101 spi Connection OK" CR));
       ELECHOUSE_cc1101.Init();
