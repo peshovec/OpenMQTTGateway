@@ -1817,8 +1817,8 @@ void ESPRestart(byte reason) {
 #if defined(ESPWifiManualSetup)
 void setupWiFiFromBuild() {
   WiFi.mode(WIFI_STA);
-  wifiMulti.addAP(wifi_ssid, wifi_password);
-  Log.trace(F("Connecting to %s" CR), wifi_ssid);
+  wifiMulti.addAP(Cwifi_ssid, wifi_password);
+  Log.trace(F("Connecting to %s" CR), Cwifi_ssid);
 #  ifdef wifi_ssid1
   wifiMulti.addAP(wifi_ssid1, wifi_password1);
   Log.trace(F("Connecting to %s" CR), wifi_ssid1);

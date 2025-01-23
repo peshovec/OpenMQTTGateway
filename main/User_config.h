@@ -107,8 +107,8 @@
 #endif
 
 #if defined(ESPWifiManualSetup) // for nodemcu, weemos and esp8266
-#  ifndef wifi_ssid
-#    define wifi_ssid "wifi ssid"
+#  ifndef Cwifi_ssid
+#    define Cwifi_ssid "wifi ssid"
 #  endif
 #  ifndef wifi_password
 #    define wifi_password "wifi password"
