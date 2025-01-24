@@ -185,7 +185,7 @@ void BTConfig_fromJson(JsonObject& BTdata, bool startup = false) {
   Config_update(BTdata, "hasspresence", BTConfig.presenceEnable);
   // Time before before active scan
   // Scan interval set - and avoid intervalacts to be lower than interval
-  if (BTdata.containsKey("interval") && BTdata["interval"] != 0) {
+  if (BTdata.containsKey("interval") && BTdata["interval"].as<JsonObject>() != 0) {
     BTConfig.adaptiveScan = false;
     Config_update(BTdata, "interval", BTConfig.BLEinterval);
     if (BTConfig.intervalActiveScan < BTConfig.BLEinterval) {
@@ -193,7 +193,7 @@ void BTConfig_fromJson(JsonObject& BTdata, bool startup = false) {
     }
   }
   // Define if the scan is adaptive or not - and avoid intervalacts to be lower than interval
-  if (BTdata.containsKey("intervalacts") && BTdata["intervalacts"] < BTConfig.BLEinterval) {
+  if (BTdata.containsKey("intervalacts") && BTdata["intervalacts"].as<JsonObject>() < BTConfig.BLEinterval) {
     BTConfig.adaptiveScan = false;
     // Config_update(BTdata, "interval", BTConfig.intervalActiveScan);
     BTConfig.intervalActiveScan = BTConfig.BLEinterval;
