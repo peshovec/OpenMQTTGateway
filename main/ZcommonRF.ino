@@ -43,6 +43,7 @@ void initCC1101() {
     if (ELECHOUSE_cc1101.getCC1101()) {
       Log.notice(F("C1101 spi Connection OK" CR));
       ELECHOUSE_cc1101.Init();
+      ELECHOUSE_cc1101.setDRate(4.8); // expected is to increace reciver range
       ELECHOUSE_cc1101.SetRx(RFConfig.frequency);
       break;
     } else {
