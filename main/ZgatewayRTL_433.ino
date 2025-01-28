@@ -252,7 +252,7 @@ void storeRTL_433Discovery(JsonObject& RFrtl_433_ESPdata, const char* model, con
   size_t numRows = sizeof(parameters) / sizeof(parameters[0]);
 
   for (int i = 0; i < numRows; i++) {
-    if (RFrtl_433_ESPdata.containsKey(parameters[i][0])) {
+    if (RFrtl_433_ESPdata.containsKey(String(parameters[i][0]))) {
       String key_id = String(uniqueid) + "-" + String(parameters[i][0]);
       createOrUpdateDeviceRTL_433((char*)key_id.c_str(), (char*)modelSanitized.c_str(), (char*)type, device_flags_init);
     }
@@ -278,11 +278,12 @@ void rtl_433_Callback(char* message) {
   const char naming_keys[5][8] = {"type", "model", "subtype", "channel", "id"}; // from rtl_433_mqtt_hass.py
   size_t numRows = sizeof(naming_keys) / sizeof(naming_keys[0]);
   for (int i = 0; i < numRows; i++) {
-    if (RFrtl_433_ESPdata.containsKey(naming_keys[i])) {
+    String nkey = naming_keys[i];
+    if (RFrtl_433_ESPdata.containsKey(nkey)) {
       if (uniqueid == 0) {
-        uniqueid = RFrtl_433_ESPdata[naming_keys[i]].as<String>(); // Start of the unique id with the first key
+        uniqueid = RFrtl_433_ESPdata[nkey].as<String>(); // Start of the unique id with the first key
       } else {
-        uniqueid = uniqueid + "/" + RFrtl_433_ESPdata[naming_keys[i]].as<String>(); // Following keys
+        uniqueid = uniqueid + "/" + RFrtl_433_ESPdata[nkey].as<String>(); // Following keys
       }
     }
   }
