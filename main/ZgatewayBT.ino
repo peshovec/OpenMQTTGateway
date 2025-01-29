@@ -157,26 +157,26 @@ void BTConfig_fromJson(JsonObject& BTdata, bool startup = false) {
   Config_update(BTdata, "bleconnect", BTConfig.bleConnect);
   // Identify AdaptiveScan deactivation to pass to continuous mode or activation to come back to default settings
   if (startup == false) {
-    if (BTdata.containsKey("hasspresence") && BTdata["hasspresence"] == false && BTConfig.presenceEnable == true) {
+    if (BTdata["haspressence"].is<JsonVariant>() && BTdata["hasspresence"] == false && BTConfig.presenceEnable == true) { //has to check existance, elsewhere if the key does not exist the evaulation if the key is false will be true
       BTdata["adaptivescan"] = true;
-    } else if (BTdata.containsKey("hasspresence") && BTdata["hasspresence"] == true && BTConfig.presenceEnable == false) {
+    } else if (BTdata["hasspresence"] == true && BTConfig.presenceEnable == false) {
       BTdata["adaptivescan"] = false;
     }
 
-    if (BTdata.containsKey("adaptivescan") && BTdata["adaptivescan"] == false && BTConfig.adaptiveScan == true) {
+    if (BTdata["adaptivescan"].is<JsonVariant>() && BTdata["adaptivescan"] == false && BTConfig.adaptiveScan == true) {
       BTdata["interval"] = MinTimeBtwScan;
       BTdata["intervalacts"] = MinTimeBtwScan;
       BTdata["scanduration"] = MinScanDuration;
-    } else if (BTdata.containsKey("adaptivescan") && BTdata["adaptivescan"] == true && BTConfig.adaptiveScan == false) {
+    } else if (BTdata["adaptivescan"] == true && BTConfig.adaptiveScan == false) { // just in case check about comparing null with false and true
       BTdata["interval"] = TimeBtwRead;
       BTdata["intervalacts"] = TimeBtwActive;
       BTdata["scanduration"] = Scan_duration;
     }
     // Identify if the gateway is enabled or not and stop start accordingly
-    if (BTdata.containsKey("enabled") && BTdata["enabled"] == false && BTConfig.enabled == true) {
+    if (BTdata["enabled"].is<JsonVariant>() && BTdata["enabled"] == false && BTConfig.enabled == true) {
       // Stop the gateway but without deinit to enable a future BT restart
       stopProcessing(false);
-    } else if (BTdata.containsKey("enabled") && BTdata["enabled"] == true && BTConfig.enabled == false) {
+    } else if (BTdata["enabled"] == true && BTConfig.enabled == false) {
       BTProcessLock = false;
       setupBTTasksAndBLE();
     }
@@ -185,7 +185,7 @@ void BTConfig_fromJson(JsonObject& BTdata, bool startup = false) {
   Config_update(BTdata, "hasspresence", BTConfig.presenceEnable);
   // Time before before active scan
   // Scan interval set - and avoid intervalacts to be lower than interval
-  if (BTdata.containsKey("interval") && BTdata["interval"].as<JsonObject>() != 0) {
+  if (BTdata["interval"].as<JsonObject>() != 0) { // just in case check about null compared to 0
     BTConfig.adaptiveScan = false;
     Config_update(BTdata, "interval", BTConfig.BLEinterval);
     if (BTConfig.intervalActiveScan < BTConfig.BLEinterval) {
@@ -193,7 +193,7 @@ void BTConfig_fromJson(JsonObject& BTdata, bool startup = false) {
     }
   }
   // Define if the scan is adaptive or not - and avoid intervalacts to be lower than interval
-  if (BTdata.containsKey("intervalacts") && BTdata["intervalacts"].as<JsonObject>() < BTConfig.BLEinterval) {
+  if (BTdata["intervalacts"].as<JsonObject>() < BTConfig.BLEinterval) {
     BTConfig.adaptiveScan = false;
     // Config_update(BTdata, "interval", BTConfig.intervalActiveScan);
     BTConfig.intervalActiveScan = BTConfig.BLEinterval;
@@ -239,7 +239,7 @@ void BTConfig_fromJson(JsonObject& BTdata, bool startup = false) {
 
   stateBTMeasures(startup);
 
-  if (BTdata.containsKey("erase") && BTdata["erase"].as<bool>()) {
+  if (BTdata["erase"].as<bool>()) {
     // Erase config from NVS (non-volatile storage)
     preferences.begin(Gateway_Short_Name, false);
     if (preferences.isKey("BTConfig")) {
@@ -253,7 +253,7 @@ void BTConfig_fromJson(JsonObject& BTdata, bool startup = false) {
     }
   }
 
-  if (BTdata.containsKey("save") && BTdata["save"].as<bool>()) {
+  if (BTdata["save"].as<bool>()) {
     StaticJsonDocument<JSON_MSG_BUFFER> jsonBuffer;
     JsonObject jo = jsonBuffer.to<JsonObject>();
     jo["bleconnect"] = BTConfig.bleConnect;
@@ -1143,7 +1143,7 @@ void launchBTDiscovery(bool overrideDiscovery) {}
 #  if BLEDecoder
 void process_bledata(JsonObject& BLEdata) {
   yield(); // Necessary to let the loop run in case of connectivity issues
-  if (!BLEdata.containsKey("id")) {
+  if (!BLEdata["id"].as<JsonVariant>()) { // consider the type
     Log.error(F("No mac address in the payload" CR));
     return;
   }
@@ -1171,7 +1171,7 @@ void process_bledata(JsonObject& BLEdata) {
       } else {
         createOrUpdateDevice(mac, device_flags_init, model_id, mac_type, deviceName);
         if (BTConfig.adaptiveScan == true && (BTConfig.BLEinterval != MinTimeBtwScan || BTConfig.intervalActiveScan != MinTimeBtwScan)) {
-          if (BLEdata.containsKey("acts") && BLEdata.containsKey("cont")) {
+          if (BLEdata["acts"].as<JsonVariant>() && BLEdata["cont"].as<JsonVariant>()) {
             if (BLEdata["acts"] && BLEdata["cont"]) {
               BTConfig.BLEinterval = MinTimeBtwScan;
               BTConfig.intervalActiveScan = MinTimeBtwScan;
@@ -1179,7 +1179,7 @@ void process_bledata(JsonObject& BLEdata) {
               Log.notice(F("Active and continuous scanning required, parameters adapted" CR));
               stateBTMeasures(false);
             }
-          } else if (BLEdata.containsKey("cont") && BTConfig.BLEinterval != MinTimeBtwScan) {
+          } else if (BLEdata["cont"].as<JsonVariant>() && BTConfig.BLEinterval != MinTimeBtwScan) {
             if (BLEdata["cont"]) {
               BTConfig.BLEinterval = MinTimeBtwScan;
               if ((BLEdata["type"].as<string>()).compare("CTMO") == 0) {
@@ -1192,7 +1192,7 @@ void process_bledata(JsonObject& BLEdata) {
         }
       }
     } else {
-      if (BLEdata.containsKey("name")) { // Connectable only devices
+      if (BLEdata["name"].is<JsonVariant>()) { // Connectable only devices // check for any existence, as name can be something, which evaluates to false
         std::string name = BLEdata["name"];
         if (name.compare("LYWSD03MMC") == 0)
           model_id = BLEconectable::id::LYWSD03MMC;
@@ -1207,7 +1207,7 @@ void process_bledata(JsonObject& BLEdata) {
           Log.trace(F("Connectable device found: %s" CR), name.c_str());
           createOrUpdateDevice(mac, device_flags_connect, model_id, mac_type, deviceName);
         }
-      } else if (BTConfig.extDecoderEnable && model_id < 0 && BLEdata.containsKey("servicedata")) {
+      } else if (BTConfig.extDecoderEnable && model_id < 0 && BLEdata["servicedata"].as<JsonVariant>()) {
         const char* service_data = (const char*)(BLEdata["servicedata"] | "");
         if (strstr(service_data, "209800") != NULL) {
           model_id == TheengsDecoder::BLE_ID_NUM::HHCCJCY01HHCC;
@@ -1248,8 +1248,8 @@ void PublishDeviceData(JsonObject& BLEdata) {
       BLEdata.remove("ctrl");
     }
     // if distance available, check if presenceUseBeaconUuid is true, model_id is IBEACON then set id as uuid
-    if (BLEdata.containsKey("distance")) {
-      if (BTConfig.presenceUseBeaconUuid && BLEdata.containsKey("model_id") && BLEdata["model_id"].as<String>() == "IBEACON") {
+    if (BLEdata["distance"]) {
+      if (BTConfig.presenceUseBeaconUuid && BLEdata["model_id"].as<String>() == "IBEACON") {
         BLEdata["mac"] = BLEdata["id"].as<std::string>();
         BLEdata["id"] = BLEdata["uuid"].as<std::string>();
       }
@@ -1260,7 +1260,7 @@ void PublishDeviceData(JsonObject& BLEdata) {
     }
 
     // If the device is not a sensor and pubOnlySensors is true we don't publish this payload
-    if (!BTConfig.pubOnlySensors || BLEdata.containsKey("model") || !BLEDecoder) { // Identified device
+    if (!BTConfig.pubOnlySensors || BLEdata["model"].as<JsonVariant>() || !BLEDecoder) { // Identified device // probably differentiating between emtpy value and non exist key is worth
       buildTopicFromId(BLEdata, subjectBTtoMQTT);
       enqueueJsonObject(BLEdata, QueueSemaphoreTimeOutTask);
     } else {
@@ -1269,7 +1269,7 @@ void PublishDeviceData(JsonObject& BLEdata) {
     }
 
 #    if BLEDecoder
-    if (enableMultiGTWSync && BLEdata.containsKey("model_id") && BLEdata.containsKey("id")) {
+    if (enableMultiGTWSync && BLEdata["model_id"].as<JsonVariant>() && BLEdata["id"].as<JsonVariant>()) {
       // Publish tracker sync message
       bool isTracker = false;
       std::string tag = decoder.getTheengAttribute(BLEdata["model_id"].as<const char*>(), "tag");
@@ -1298,8 +1298,8 @@ void process_bledata(JsonObject& BLEdata) {}
 void PublishDeviceData(JsonObject& BLEdata) {
   if (abs((int)BLEdata["rssi"] | 0) < abs(BTConfig.minRssi)) { // process only the devices close enough
     // if distance available, check if presenceUseBeaconUuid is true, model_id is IBEACON then set id as uuid
-    if (BLEdata.containsKey("distance")) {
-      if (BTConfig.presenceUseBeaconUuid && BLEdata.containsKey("model_id") && BLEdata["model_id"].as<String>() == "IBEACON") {
+    if (BLEdata["distance"].as<JsonVariant>()) {
+      if (BTConfig.presenceUseBeaconUuid && BLEdata["model_id"].as<String>() == "IBEACON") {
         BLEdata["mac"] = BLEdata["id"].as<std::string>();
         BLEdata["id"] = BLEdata["uuid"].as<std::string>();
       }
@@ -1411,7 +1411,7 @@ void startBTActionTask() {
 
 #  if BLEDecoder
 void KnownBTActions(JsonObject& BTdata) {
-  if (!BTdata.containsKey("id")) {
+  if (!BTdata["id"].as<JsonVariant>()) {
     Log.error(F("BLE mac address missing" CR));
     gatewayState = GatewayState::ERROR;
     return;
@@ -1421,9 +1421,9 @@ void KnownBTActions(JsonObject& BTdata) {
   action.write = true;
   action.ttl = 3;
   bool res = false;
-  if (BTdata.containsKey("model_id") && BTdata["model_id"].is<const char*>()) {
+  if (BTdata["model_id"].is<const char*>()) {
     if (BTdata["model_id"] == "X1") {
-      if (BTdata.containsKey("cmd") && BTdata["cmd"].is<const char*>()) {
+      if (BTdata["cmd"].is<const char*>()) {
         action.value_type = BLE_VAL_STRING;
         std::string val = BTdata["cmd"].as<std::string>(); // Fix #1694
         action.value = val;
@@ -1432,10 +1432,10 @@ void KnownBTActions(JsonObject& BTdata) {
         res = true;
       }
     } else if (BTdata["model_id"] == "W270160X") {
-      if (BTdata.containsKey("tilt") && BTdata["tilt"].is<int>()) {
+      if (BTdata["tilt"].is<int>()) {
         action.value_type = BLE_VAL_INT;
         res = true;
-      } else if (BTdata.containsKey("tilt") && BTdata["tilt"].is<const char*>()) {
+      } else if (BTdata["tilt"].is<const char*>()) {
         action.value_type = BLE_VAL_STRING;
         res = true;
       }
@@ -1446,10 +1446,10 @@ void KnownBTActions(JsonObject& BTdata) {
                              TheengsDecoder::BLE_ID_NUM::SBBT, 1);
       }
     } else if (BTdata["model_id"] == "W070160X") {
-      if (BTdata.containsKey("position") && BTdata["position"].is<int>()) {
+      if (BTdata["position"].is<int>()) {
         action.value_type = BLE_VAL_INT;
         res = true;
-      } else if (BTdata.containsKey("position") && BTdata["position"].is<const char*>()) {
+      } else if (BTdata["position"].is<const char*>()) {
         action.value_type = BLE_VAL_STRING;
         res = true;
       }
@@ -1476,9 +1476,9 @@ void KnownBTActions(JsonObject& BTdata) {}
 
 void XtoBTAction(JsonObject& BTdata) {
   BLEAction action{};
-  action.ttl = BTdata.containsKey("ttl") ? (uint8_t)BTdata["ttl"] : 1;
+  action.ttl = BTdata["ttl"].is<JsonVariant>() ? (uint8_t)BTdata["ttl"] : 1;
   action.value_type = BLE_VAL_STRING;
-  if (BTdata.containsKey("value_type")) {
+  if (BTdata["value_type"].is<JsonVariant>()) {
     String vt = BTdata["value_type"];
     vt.toUpperCase();
     if (vt == "HEX")
@@ -1495,21 +1495,21 @@ void XtoBTAction(JsonObject& BTdata) {
 
   Log.trace(F("BLE ACTION TTL = %u" CR), action.ttl);
   action.complete = false;
-  if (BTdata.containsKey("ble_write_address") &&
-      BTdata.containsKey("ble_write_service") &&
-      BTdata.containsKey("ble_write_char") &&
-      BTdata.containsKey("ble_write_value")) {
-    action.addr = NimBLEAddress(BTdata["ble_write_address"].as<std::string>(), BTdata.containsKey("mac_type") ? BTdata["mac_type"].as<int>() : 0);
+  if (BTdata["ble_write_address"].is<JsonVariant>() &&
+      BTdata["ble_write_service"].is<JsonVariant>() &&
+      BTdata["ble_write_char"].is<JsonVariant>() &&
+      BTdata["ble_write_value"].is<JsonVariant>()) {
+    action.addr = NimBLEAddress(BTdata["ble_write_address"].is<std::string>(), BTdata["mac_type"].is<JsonVariant>() ? BTdata["mac_type"].as<int>() : 0);
     action.service = NimBLEUUID((const char*)BTdata["ble_write_service"]);
     action.characteristic = NimBLEUUID((const char*)BTdata["ble_write_char"]);
     std::string val = BTdata["ble_write_value"].as<std::string>(); // Fix #1694
     action.value = val;
     action.write = true;
     Log.trace(F("BLE ACTION Write" CR));
-  } else if (BTdata.containsKey("ble_read_address") &&
-             BTdata.containsKey("ble_read_service") &&
-             BTdata.containsKey("ble_read_char")) {
-    action.addr = NimBLEAddress(BTdata["ble_read_address"].as<std::string>(), BTdata.containsKey("mac_type") ? BTdata["mac_type"].as<int>() : 0);
+  } else if (BTdata["ble_read_address"].is<JsonVariant>() &&
+             BTdata["ble_read_service"].is<JsonVariant>() &&
+             BTdata["ble_read_char"].is<JsonVariant>()) {
+    action.addr = NimBLEAddress(BTdata["ble_read_address"].as<std::string>(), BTdata["mac_type"].is<int>() ? BTdata["mac_type"].as<int>() : 0);
     action.service = NimBLEUUID((const char*)BTdata["ble_read_service"]);
     action.characteristic = NimBLEUUID((const char*)BTdata["ble_read_char"]);
     action.write = false;
@@ -1521,7 +1521,7 @@ void XtoBTAction(JsonObject& BTdata) {
   createOrUpdateDevice(action.addr.toString().c_str(), device_flags_connect, UNKWNON_MODEL, action.addr.getType());
 
   BLEactions.push_back(action);
-  if (BTdata.containsKey("immediate") && BTdata["immediate"].as<bool>()) {
+  if (BTdata["immediate"].as<bool>()) {
     startBTActionTask();
   }
 }
@@ -1543,7 +1543,7 @@ void XtoBT(const char* topicOri, JsonObject& BTdata) { // json object decoding
     }
 
     // Force scan now
-    if (BTdata.containsKey("interval") && BTdata["interval"] == 0) {
+    if (BTdata["interval"].is<JsonVariant>() && BTdata["interval"] == 0) {
       Log.notice(F("BLE forced scan" CR));
       atomic_store_explicit(&forceBTScan, 1, ::memory_order_seq_cst); // ask the other core to do the scan for us
     }
@@ -1554,10 +1554,10 @@ void XtoBT(const char* topicOri, JsonObject& BTdata) { // json object decoding
      *  Then parameters included in json are taken in account
      *  Finally `erase=true` and `save=true` commands are executed (if both are present, ERASE prevails on SAVE)
      */
-    if (BTdata.containsKey("init") && BTdata["init"].as<bool>()) {
+    if (BTdata["init"].as<bool>()) {
       // Restore the default (initial) configuration
       BTConfig_init();
-    } else if (BTdata.containsKey("load") && BTdata["load"].as<bool>()) {
+    } else if (BTdata["load"].as<bool>()) {
       // Load the saved configuration, if not initialised
       BTConfig_load();
     }
@@ -1575,7 +1575,7 @@ void XtoBT(const char* topicOri, JsonObject& BTdata) { // json object decoding
       gatewayState = GatewayState::ERROR;
     }
   } else if (strstr(topicOri, subjectTrackerSync) != NULL) {
-    if (BTdata.containsKey("gatewayid") && BTdata.containsKey("trackerid") && BTdata["gatewayid"] != gateway_name) {
+    if (BTdata["gatewayid"].is<JsonVariant>() && BTdata["trackerid"].is<JsonVariant>() && BTdata["gatewayid"] != gateway_name) {
       BLEdevice* device = getDeviceByMac(BTdata["trackerid"].as<const char*>());
       if (device != &NO_BT_DEVICE_FOUND && device->lastUpdate != 0) {
         device->lastUpdate = 0;

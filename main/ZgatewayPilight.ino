@@ -72,7 +72,7 @@ void pilightCallback(const String& protocol, const String& message, int status,
       char* choices[] = {"key", "unit", "device_id", "systemcode", "unitcode", "programcode"};
 
       for (uint8_t i = 0; i < 6; i++) {
-        if (msg.containsKey(choices[i])) {
+        if (msg[choices[i]].is<JsonVariant>()) { // just check for non empty value in the keys, and be buletprof for values, evaluating to false
           // Set value directly from msg; supports both strings and integers
           RFPiLightdata["value"] = msg[choices[i]];
           break;
@@ -158,28 +158,28 @@ void PilighttoX() {
 void XtoPilight(const char* topicOri, JsonObject& Pilightdata) {
   if (cmpToMainTopic(topicOri, subjectMQTTtoPilightProtocol)) {
     bool success = false;
-    if (Pilightdata.containsKey("reset")) {
+    if (Pilightdata["reset"].is<JsonVariant>()) { // distinguish non existence keys and key value, which evaulates to false
       rf.limitProtocols(rf.availableProtocols());
       savePilightConfig();
       success = true;
     }
-    if (Pilightdata.containsKey("limit")) {
+    if (Pilightdata["limit"].is<JsonVariant>()) {
       String output;
       serializeJson(Pilightdata["limit"], output);
       rf.limitProtocols(output);
       savePilightConfig();
       success = true;
     }
-    if (Pilightdata.containsKey("enabled")) {
+    if (Pilightdata["enabled"].is<JsonVariant>()) {
       Log.notice(F("PiLight protocols enabled: %s" CR), rf.enabledProtocols().c_str());
       success = true;
     }
-    if (Pilightdata.containsKey("available")) {
+    if (Pilightdata["available"].is<JsonVariant>()) {
       Log.notice(F("PiLight protocols available: %s" CR), rf.availableProtocols().c_str());
       success = true;
     }
 #  ifdef Pilight_rawEnabled
-    if (Pilightdata.containsKey("rawEnabled")) {
+    if (Pilightdata["rawEnabled"].is<JsonVariant>()) { //just check for existence, as boolean false is one of the meaningfull and used afterwards values
       Log.notice(F("Setting PiLight raw output enabled: %T" CR), (bool)Pilightdata["rawEnabled"]);
       pilightRawEnabled = (bool)Pilightdata["rawEnabled"];
       disablePilightReceive();
