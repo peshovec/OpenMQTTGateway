@@ -203,32 +203,32 @@ String stateRFMeasures() {
 
 void RFConfig_fromJson(JsonObject& RFdata) {
   bool success = false;
-  if (RFdata.containsKey("frequency") && validFrequency(RFdata["frequency"])) {
+  if (validFrequency(RFdata["frequency"])) { // if frequency does not exist RFdata["frequency"] will be null, hence no validFrequncy
     Config_update(RFdata, "frequency", RFConfig.frequency);
     Log.notice(F("RF Receive mhz: %F" CR), RFConfig.frequency);
     success = true;
   }
-  if (RFdata.containsKey("active")) {
+  if (RFdata["active"].as<JsonVariant>()) { // consider to specify the type <const char*> ?
     Log.notice(F("RF receiver active: %d" CR), RFConfig.activeReceiver);
     Config_update(RFdata, "active", RFConfig.activeReceiver);
     success = true;
   }
 #  ifdef ZgatewayRTL_433
-  if (RFdata.containsKey("rssithreshold")) {
+  if (RFdata["rssithreshold"].as<JsonVariant>()) { // ? type float ?
     Log.notice(F("RTL_433 RSSI Threshold : %d " CR), RFConfig.rssiThreshold);
     Config_update(RFdata, "rssithreshold", RFConfig.rssiThreshold);
     rtl_433.setRSSIThreshold(RFConfig.rssiThreshold);
     success = true;
   }
 #    if defined(RF_SX1276) || defined(RF_SX1278)
-  if (RFdata.containsKey("ookthreshold")) {
+  if (RFdata["ookthreshold"].as<JsonVariant>()) { // type float? int?
     Config_update(RFdata, "ookthreshold", RFConfig.newOokThreshold);
     Log.notice(F("RTL_433 ookThreshold %d" CR), RFConfig.newOokThreshold);
     rtl_433.setOOKThreshold(RFConfig.newOokThreshold);
     success = true;
   }
 #    endif
-  if (RFdata.containsKey("status")) {
+  if (RFdata["status"].as<JsonVariant>()) { // type const char* . string ?
     Log.notice(F("RF get status:" CR));
     rtl_433.getStatus();
     success = true;
@@ -240,7 +240,7 @@ void RFConfig_fromJson(JsonObject& RFdata) {
   disableCurrentReceiver();
   enableActiveReceiver();
 #  ifdef ESP32
-  if (RFdata.containsKey("erase") && RFdata["erase"].as<bool>()) {
+  if (RFdata["erase"].as<bool>()) {
     // Erase config from NVS (non-volatile storage)
     preferences.begin(Gateway_Short_Name, false);
     if (preferences.isKey("RFConfig")) {
@@ -253,7 +253,7 @@ void RFConfig_fromJson(JsonObject& RFdata) {
       preferences.end();
     }
   }
-  if (RFdata.containsKey("save") && RFdata["save"].as<bool>()) {
+  if (RFdata["save"].as<bool>()) {
     StaticJsonDocument<JSON_MSG_BUFFER> jsonBuffer;
     JsonObject jo = jsonBuffer.to<JsonObject>();
     jo["frequency"] = RFConfig.frequency;
@@ -319,10 +319,10 @@ void XtoRFset(const char* topicOri, JsonObject& RFdata) {
      *  Then parameters included in json are taken in account
      *  Finally `erase=true` and `save=true` commands are executed (if both are present, ERASE prevails on SAVE)
      */
-    if (RFdata.containsKey("init") && RFdata["init"].as<bool>()) {
+    if (RFdata["init"].as<bool>()) {
       // Restore the default (initial) configuration
       RFConfig_init();
-    } else if (RFdata.containsKey("load") && RFdata["load"].as<bool>()) {
+    } else if (RFdata["load"].as<bool>()) {
       // Load the saved configuration, if not initialised
       RFConfig_load();
     }

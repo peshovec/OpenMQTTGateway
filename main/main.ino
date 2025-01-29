@@ -264,7 +264,7 @@ static int cnt_index = CNT_DEFAULT_INDEX;
 #  include <FS.h>
 #  include <LittleFS.h>
 #  define SPIFFS LittleFS
-#  define byte uint8_t
+#  define byte   uint8_t
 #  include <esp_task_wdt.h>
 #  include <nvs.h>
 #  include <nvs_flash.h>
@@ -373,7 +373,7 @@ template <typename T> // Declared here to avoid pre-compilation issue (missing "
 void Config_update(JsonObject& data, const char* key, T& var);
 template <typename T>
 void Config_update(JsonObject& data, const char* key, T& var) {
-  if (data.containsKey(key)) {
+  if (data[key].as<JsonVariant>()) {
     if (var != data[key].as<T>()) {
       var = data[key].as<T>();
       Log.notice(F("Config %s changed to: %T" CR), key, data[key].as<T>());
@@ -389,7 +389,7 @@ void Config_update(JsonObject& data, const char* key, T& var) {
 */
 bool jsonDispatch(JsonObject& data) {
   bool res = false;
-  if (data.containsKey("origin") || data.containsKey("topic")) {
+  if (data["origin"].is<JsonVariant>() || data["topic"].is<JsonVariant>()) { // just in case if value of the keys evaluate to false
     GatewayState previousGatewayState = gatewayState;
     gatewayState = GatewayState::PROCESSING;
 #if message_UTCtimestamp == true
@@ -398,7 +398,7 @@ bool jsonDispatch(JsonObject& data) {
 #if message_unixtimestamp == true
     data["unixtime"] = TheengsUtils::unixtimestamp();
 #endif
-    if (data.containsKey("origin")) {
+    if (data["origin"].is<JsonVariant>()) {
       pubWebUI((char*)data["origin"].as<const char*>(), data);
     }
     if (SYSConfig.mqtt && !SYSConfig.offline) {
@@ -483,7 +483,7 @@ std::string generateHash(const std::string& input) {
  *
 */
 void buildTopicFromId(JsonObject& Jsondata, const char* origin) {
-  if (!Jsondata.containsKey("id")) {
+  if (!Jsondata["id"].is<JsonVariant>()) { // value of id can evaluate in corner cases to true / false
     Log.error(F("No id in Jsondata" CR));
     gatewayState = GatewayState::ERROR;
     return;
@@ -498,8 +498,8 @@ void buildTopicFromId(JsonObject& Jsondata, const char* origin) {
     pos = topic.find(":", pos);
   }
 #ifdef ZgatewayBT
-  if (BTConfig.pubBeaconUuidForTopic && !BTConfig.extDecoderEnable && Jsondata.containsKey("model_id") && Jsondata["model_id"].as<std::string>() == "IBEACON") {
-    if (Jsondata.containsKey("uuid")) {
+  if (BTConfig.pubBeaconUuidForTopic && !BTConfig.extDecoderEnable && Jsondata["model_id"].as<std::string>() == "IBEACON") {
+    if (Jsondata["uuid"].is<JsonVariant>()) {
       topic = Jsondata["uuid"].as<std::string>();
     } else {
       Log.error(F("No uuid in Jsondata" CR));
@@ -507,7 +507,7 @@ void buildTopicFromId(JsonObject& Jsondata, const char* origin) {
     }
   }
 
-  if (BTConfig.extDecoderEnable && !Jsondata.containsKey("model"))
+  if (BTConfig.extDecoderEnable && !Jsondata["model"].is<JsonVariant>())
     topic = BTConfig.extDecoderTopic.c_str();
 #endif
   std::string subjectStr(origin);
@@ -572,7 +572,7 @@ bool pub(const char* topicori, const char* payload, bool retainFlag) {
 bool pub(JsonObject& data) {
   bool res = false;
   bool ret = sensor_Retain;
-  if (data.containsKey("retain") && data["retain"].is<bool>()) {
+  if (data["retain"].is<bool>()) {
     ret = data["retain"];
     data.remove("retain");
   }
@@ -582,12 +582,12 @@ bool pub(JsonObject& data) {
     return res;
   }
   String topic;
-  if (data.containsKey("origin") && data["origin"].is<const char*>()) {
+  if (data["origin"].is<const char*>()) {
     topic = String(mqtt_topic) + String(gateway_name) + String(data["origin"].as<const char*>());
     data.remove("origin");
-  } else if (data.containsKey("topic") && data["topic"].is<const char*>()) {
+  } else if (data["topic"].is<const char*>()) {
     topic = data["topic"].as<const char*>();
-    if (data.containsKey("info_topic") && data["info_topic"].is<const char*>()) {
+    if (data["info_topic"].is<const char*>()) {
       // Sometimes it is necessary to provide information about the publishing topic, not just use it.
       // This is the case, for example, for the RF2MQTT device trigger announcement message where the
       // temporary variable info_topic provides information about the topic that will be used to publish the message,
@@ -2077,22 +2077,22 @@ bool loadConfigFromFlash() {
           char key[mqtt_key_max_size];
           strcpy(key, "mqtt_broker_cert");
           strcat(key, index_suffix);
-          if (json.containsKey(key)) {
+          if (json[key].is<const char*>()) {
             cnt_parameters_array[i].server_cert = json[key].as<const char*>();
           }
           strcpy(key, "mqtt_client_cert");
           strcat(key, index_suffix);
-          if (json.containsKey(key)) {
+          if (json[key].is<const char*>()) {
             cnt_parameters_array[i].client_cert = json[key].as<const char*>();
           }
           strcpy(key, "mqtt_client_key");
           strcat(key, index_suffix);
-          if (json.containsKey(key)) {
+          if (json[key].is<const char*>()) {
             cnt_parameters_array[i].client_key = json[key].as<const char*>();
           }
           strcpy(key, "ota_server_cert");
           strcat(key, index_suffix);
-          if (json.containsKey(key)) {
+          if (json[key].is<JsonVariant>()) { // consider to specify the type or refactor
 #    ifdef ESP32
             // Read hash from the file
             std::string hash = generateHash(json["ota_server_cert"]);
@@ -2110,37 +2110,37 @@ bool loadConfigFromFlash() {
           }
           strcpy(key, "mqtt_server");
           strcat(key, index_suffix);
-          if (json.containsKey(key)) {
+          if (json[key].is<const char*>()) {
             strcpy(cnt_parameters_array[i].mqtt_server, json[key].as<const char*>());
           }
           strcpy(key, "mqtt_port");
           strcat(key, index_suffix);
-          if (json.containsKey(key)) {
+          if (json[key].is<const char*>()) {
             strcpy(cnt_parameters_array[i].mqtt_port, json[key].as<const char*>());
           }
           strcpy(key, "mqtt_user");
           strcat(key, index_suffix);
-          if (json.containsKey(key)) {
+          if (json[key].is<const char*>()) {
             strcpy(cnt_parameters_array[i].mqtt_user, json[key].as<const char*>());
           }
           strcpy(key, "mqtt_pass");
           strcat(key, index_suffix);
-          if (json.containsKey(key)) {
+          if (json[key].is<const char*>()) {
             strcpy(cnt_parameters_array[i].mqtt_pass, json[key].as<const char*>());
           }
           strcpy(key, "mqtt_broker_secure");
           strcat(key, index_suffix);
-          if (json.containsKey(key)) {
+          if (json[key].is<bool>()) {
             cnt_parameters_array[i].isConnectionSecure = json[key].as<bool>();
           }
           strcpy(key, "mqtt_iscertvalid");
           strcat(key, index_suffix);
-          if (json.containsKey(key)) {
+          if (json[key].is<bool>()) {
             cnt_parameters_array[i].isCertValidate = json[key].as<bool>();
           }
           strcpy(key, "valid_cnt");
           strcat(key, index_suffix);
-          if (json.containsKey(key)) {
+          if (json[key].is<bool>()) {
             cnt_parameters_array[i].validConnection = json[key].as<bool>();
           } else if (i == CNT_DEFAULT_INDEX) {
             // For backward compatibility, if valid_cnt is not found, we assume the connection is valid for CNT_DEFAULT_INDEX
@@ -2148,19 +2148,19 @@ bool loadConfigFromFlash() {
             cnt_parameters_array[i].validConnection = true;
           }
         }
-        if (json.containsKey("cnt_index")) {
+        if (json["cnt_index"].is<int>()) {
           cnt_index = json["cnt_index"].as<int>();
         }
 #  endif
-        if (json.containsKey("mqtt_topic"))
+        if (json["mqtt_topic"].is<JsonVariant>())
           strcpy(mqtt_topic, json["mqtt_topic"]);
 #  ifdef ZmqttDiscovery
-        if (json.containsKey("discovery_prefix"))
+        if (json["discovery_prefix"].is<JsonVariant>())
           strcpy(discovery_prefix, json["discovery_prefix"]);
 #  endif
-        if (json.containsKey("gateway_name"))
+        if (json["gateway_name"].is<JsonVariant>())
           strcpy(gateway_name, json["gateway_name"]);
-        if (json.containsKey("ota_pass")) {
+        if (json["ota_pass"].is<JsonVariant>()) {
           strcpy(ota_pass, json["ota_pass"]);
 #  ifdef WM_PWD_FROM_MAC // From ESP Mac Address, last 8 digits as the password
           // Compare the existing ota_pass if ota_pass = OTAPASSWORD then replace with the last 8 digits of the mac address
@@ -2939,10 +2939,10 @@ void receivingDATA(const char* topicOri, const char* datacallback) {
     return;
   }
   if (topicOri == nullptr || strcmp(topicOri, "") == 0) {
-    if (jsondata.containsKey("target") && jsondata["target"].is<const char*>()) {
+    if (jsondata["target"].is<const char*>()) {
       strTopicOri = jsondata["target"].as<const char*>();
       Log.trace(F("BUS Msg target: %s" CR), strTopicOri.c_str());
-    } else if (jsondata.containsKey("origin") && jsondata["origin"].is<const char*>()) {
+    } else if (jsondata["origin"].is<const char*>()) {
       strTopicOri = jsondata["origin"].as<const char*>();
       Log.trace(F("BUS Msg origin: %s" CR), strTopicOri.c_str());
     }
@@ -3127,10 +3127,10 @@ bool checkForUpdates() {
   }
   http.end(); //Free the resources
   Log.notice(F("Update check done, free heap: %d"), ESP.getFreeHeap());
-  if (jsondata.containsKey("latest_version")) {
+  if (jsondata["latest_version"].is<JsonVariant>()) {
     jsondata["installed_version"] = OMG_VERSION;
     jsondata["entity_picture"] = ENTITY_PICTURE;
-    if (!jsondata.containsKey("release_summary"))
+    if (!jsondata["release_summary"].is<JsonVariant>())
       jsondata["release_summary"] = "";
     latestVersion = jsondata["latest_version"].as<String>();
     jsondata["origin"] = subjectRLStoMQTT;
@@ -3345,7 +3345,7 @@ void XtoSYS(const char* topicOri, JsonObject& SYSdata) { // json object decoding
     bool restartESP = false;
     bool publishState = false;
     Log.trace(F("MQTTtoSYS json" CR));
-    if (SYSdata.containsKey("cmd")) {
+    if (SYSdata["cmd"].is<const char*>()) {
       const char* cmd = SYSdata["cmd"];
       Log.notice(F("Command: %s" CR), cmd);
       if (strstr(cmd, restartCmd) != NULL) { //restart
@@ -3357,7 +3357,7 @@ void XtoSYS(const char* topicOri, JsonObject& SYSdata) { // json object decoding
       }
     }
 #ifdef LED_ADDRESSABLE
-    if (SYSdata.containsKey("rgbb") && SYSdata["rgbb"].is<float>()) {
+    if (SYSdata["rgbb"].is<float>()) {
       if (SYSdata["rgbb"] >= 0 && SYSdata["rgbb"] <= 255) {
         SYSConfig.rgbbrightness = TheengsUtils::round2(SYSdata["rgbb"]);
         ledManager.setBrightness(SYSConfig.rgbbrightness);
@@ -3371,7 +3371,7 @@ void XtoSYS(const char* topicOri, JsonObject& SYSdata) { // json object decoding
       }
     }
 #endif
-    if (SYSdata.containsKey("wifi_ssid") && SYSdata["wifi_ssid"].is<const char*>() && SYSdata.containsKey("wifi_pass") && SYSdata["wifi_pass"].is<const char*>()) {
+    if (SYSdata["wifi_ssid"].is<const char*>() && SYSdata["wifi_pass"].is<const char*>()) {
 #ifdef ESP32
       ProcessLock = true;
 #  ifdef ZgatewayBT
@@ -3401,24 +3401,24 @@ void XtoSYS(const char* topicOri, JsonObject& SYSdata) { // json object decoding
       restartESP = true;
     }
 
-    if ((SYSdata.containsKey("mqtt_topic") && SYSdata["mqtt_topic"].is<const char*>()) ||
+    if ((SYSdata["mqtt_topic"].is<const char*>()) ||
 #ifdef ZmqttDiscovery
-        (SYSdata.containsKey("discovery_prefix") && SYSdata["discovery_prefix"].is<const char*>()) ||
+        (SYSdata["discovery_prefix"].is<const char*>()) ||
 #endif
-        (SYSdata.containsKey("gateway_name") && SYSdata["gateway_name"].is<const char*>()) ||
-        (SYSdata.containsKey("gw_pass") && SYSdata["gw_pass"].is<const char*>())) {
-      if (SYSdata.containsKey("mqtt_topic")) {
+        (SYSdata["gateway_name"].is<const char*>()) ||
+        (SYSdata["gw_pass"].is<const char*>())) {
+      if (SYSdata["mqtt_topic"].is<JsonVariant>()) {
         strncpy(mqtt_topic, SYSdata["mqtt_topic"], parameters_size);
       }
 #ifdef ZmqttDiscovery
-      if (SYSdata.containsKey("discovery_prefix")) {
+      if (SYSdata["discovery_prefix"].is<JsonVariant>()) {
         strncpy(discovery_prefix, SYSdata["discovery_prefix"], parameters_size);
       }
 #endif
-      if (SYSdata.containsKey("gateway_name")) {
+      if (SYSdata["gateway_name"].is<JsonVariant>()) {
         strncpy(gateway_name, SYSdata["gateway_name"], parameters_size);
       }
-      if (SYSdata.containsKey("gw_pass")) {
+      if (SYSdata["gw_pass"].is<JsonVariant>()) {
         strncpy(ota_pass, SYSdata["gw_pass"], parameters_size);
         restartESP = true;
       }
@@ -3435,17 +3435,17 @@ void XtoSYS(const char* topicOri, JsonObject& SYSdata) { // json object decoding
     bool read_cnt = false;
     bool test_cnt = false;
 
-    if (SYSdata.containsKey("save_cnt") && SYSdata["save_cnt"].is<bool>()) {
+    if (SYSdata["save_cnt"].is<bool>()) {
       save_cnt = SYSdata["save_cnt"].as<bool>();
     }
-    if (SYSdata.containsKey("read_cnt") && SYSdata["read_cnt"].is<bool>()) {
+    if (SYSdata["read_cnt"].is<bool>()) {
       read_cnt = SYSdata["read_cnt"].as<bool>();
     }
-    if (SYSdata.containsKey("test_cnt") && SYSdata["test_cnt"].is<bool>()) {
+    if (SYSdata["test_cnt"].is<bool>()) {
       test_cnt = SYSdata["test_cnt"].as<bool>();
     }
 
-    if (SYSdata.containsKey("cnt_index") && SYSdata["cnt_index"].is<int>()) {
+    if (SYSdata["cnt_index"].is<int>()) {
       if (SYSdata["cnt_index"].as<int>() < 0 || SYSdata["cnt_index"].as<int>() > 2) {
         Log.warning(F("Invalid cnt index provided - ignoring command" CR));
         return;
@@ -3461,49 +3461,49 @@ void XtoSYS(const char* topicOri, JsonObject& SYSdata) { // json object decoding
 
       Log.notice(F("MQTT cnt index %d" CR), cnt_index);
 
-      if (SYSdata.containsKey("mqtt_user") && SYSdata["mqtt_user"].is<const char*>() && SYSdata.containsKey("mqtt_pass") && SYSdata["mqtt_pass"].is<const char*>()) {
+      if (SYSdata["mqtt_user"].is<const char*>() && SYSdata["mqtt_pass"].is<const char*>()) {
         strcpy(cnt_parameters_array[cnt_index].mqtt_user, SYSdata["mqtt_user"]);
         strcpy(cnt_parameters_array[cnt_index].mqtt_pass, SYSdata["mqtt_pass"]);
         cnt_parameters_array[cnt_index].validConnection = false;
       }
 
-      if (SYSdata.containsKey("mqtt_server") && SYSdata["mqtt_server"].is<const char*>()) {
+      if (SYSdata["mqtt_server"].is<const char*>()) {
         strcpy(cnt_parameters_array[cnt_index].mqtt_server, SYSdata["mqtt_server"]);
         cnt_parameters_array[cnt_index].validConnection = false;
       }
 
-      if (SYSdata.containsKey("mqtt_port") && SYSdata["mqtt_port"].is<const char*>()) {
+      if (SYSdata["mqtt_port"].is<const char*>()) {
         strcpy(cnt_parameters_array[cnt_index].mqtt_port, SYSdata["mqtt_port"]);
         cnt_parameters_array[cnt_index].validConnection = false;
       }
 
-      if (SYSdata.containsKey("mqtt_secure") && SYSdata["mqtt_secure"].is<bool>()) {
+      if (SYSdata["mqtt_secure"].is<bool>()) {
         cnt_parameters_array[cnt_index].isConnectionSecure = SYSdata["mqtt_secure"].as<bool>();
         cnt_parameters_array[cnt_index].validConnection = false;
       }
 
-      if (SYSdata.containsKey("mqtt_validate") && SYSdata["mqtt_validate"].is<bool>()) {
+      if (SYSdata["mqtt_validate"].is<bool>()) {
         cnt_parameters_array[cnt_index].isCertValidate = SYSdata["mqtt_validate"].as<bool>();
         cnt_parameters_array[cnt_index].validConnection = false;
       }
 
       // Copy the certs to the memory
-      if (SYSdata.containsKey("mqtt_server_cert") && SYSdata["mqtt_server_cert"].is<const char*>()) {
+      if (SYSdata["mqtt_server_cert"].is<const char*>()) {
         cnt_parameters_array[cnt_index].server_cert = TheengsUtils::processCert(SYSdata["mqtt_server_cert"].as<const char*>());
         Log.trace(F("Assigning server cert %s" CR), generateHash(cnt_parameters_array[cnt_index].server_cert).c_str());
         cnt_parameters_array[cnt_index].validConnection = false;
       }
-      if (SYSdata.containsKey("mqtt_client_cert") && SYSdata["mqtt_client_cert"].is<const char*>()) {
+      if (SYSdata["mqtt_client_cert"].is<const char*>()) {
         cnt_parameters_array[cnt_index].client_cert = TheengsUtils::processCert(SYSdata["mqtt_client_cert"].as<const char*>());
         Log.trace(F("Assigning client cert %s" CR), generateHash(cnt_parameters_array[cnt_index].client_cert).c_str());
         cnt_parameters_array[cnt_index].validConnection = false;
       }
-      if (SYSdata.containsKey("mqtt_client_key") && SYSdata["mqtt_client_key"].is<const char*>()) {
+      if (SYSdata["mqtt_client_key"].is<const char*>()) {
         cnt_parameters_array[cnt_index].client_key = TheengsUtils::processCert(SYSdata["mqtt_client_key"].as<const char*>());
         Log.trace(F("Assigning client key %s" CR), generateHash(cnt_parameters_array[cnt_index].client_key).c_str());
         cnt_parameters_array[cnt_index].validConnection = false;
       }
-      if (SYSdata.containsKey("ota_server_cert") && SYSdata["ota_server_cert"].is<const char*>()) {
+      if (SYSdata["ota_server_cert"].is<const char*>()) {
         cnt_parameters_array[cnt_index].ota_server_cert = TheengsUtils::processCert(SYSdata["ota_server_cert"].as<const char*>());
         Log.trace(F("Assigning OTA server cert %s" CR), generateHash(cnt_parameters_array[cnt_index].ota_server_cert).c_str());
       }
@@ -3533,15 +3533,15 @@ void XtoSYS(const char* topicOri, JsonObject& SYSdata) { // json object decoding
 #  endif
 #endif
 
-    if (SYSdata.containsKey("mqtt") && SYSdata["mqtt"].is<bool>()) {
+    if (SYSdata["mqtt"].is<bool>()) {
       SYSConfig.mqtt = SYSdata["mqtt"];
       Log.notice(F("xtomqtt: %T" CR), SYSConfig.mqtt);
     }
-    if (SYSdata.containsKey("serial") && SYSdata["serial"].is<bool>()) {
+    if (SYSdata["serial"].is<bool>()) {
       SYSConfig.serial = SYSdata["serial"];
       Log.notice(F("SERIAL: %T" CR), SYSConfig.serial);
     }
-    if (SYSdata.containsKey("offline") && SYSdata["offline"].is<bool>()) {
+    if (SYSdata["offline"].is<bool>()) {
       SYSConfig.offline = SYSdata["offline"];
       Log.notice(F("offline: %T" CR), SYSConfig.offline);
       if (SYSConfig.offline) {
@@ -3557,12 +3557,12 @@ void XtoSYS(const char* topicOri, JsonObject& SYSdata) { // json object decoding
           WiFi.disconnect(true);
       }
     }
-    if (SYSdata.containsKey("powermode") && SYSdata["powermode"].is<int>()) {
+    if (SYSdata["powermode"].is<int>()) {
       SYSConfig.powerMode = SYSdata["powermode"];
       Log.notice(F("Power mode: %d" CR), SYSConfig.powerMode);
     }
 #if USE_BLUFI
-    if (SYSdata.containsKey("blufi") && SYSdata["blufi"].is<bool>()) {
+    if (SYSdata["blufi"].is<bool>()) {
       bool res = false;
       if (SYSdata["blufi"] && !SYSConfig.blufi) { // Start Blufi
         res = startBlufi();
@@ -3575,7 +3575,7 @@ void XtoSYS(const char* topicOri, JsonObject& SYSdata) { // json object decoding
       Log.notice(F("Blufi: %T" CR), SYSConfig.blufi);
     }
 #endif
-    if (SYSdata.containsKey("disc")) {
+    if (SYSdata["disc"].is<JsonVariant>()) { // reconsider - it make sense if the key is present and not boolean
       if (SYSdata["disc"].is<bool>()) {
         if (SYSdata["disc"] == true && SYSConfig.discovery == false)
           lastDiscovery = millis();
@@ -3588,7 +3588,7 @@ void XtoSYS(const char* topicOri, JsonObject& SYSdata) { // json object decoding
       }
       Log.notice(F("Discovery state: %T" CR), SYSConfig.discovery);
     }
-    if (SYSdata.containsKey("save") && SYSdata["save"].as<bool>()) {
+    if (SYSdata["save"].as<bool>()) {
       SYSConfig_save();
     }
     if (publishState) {
