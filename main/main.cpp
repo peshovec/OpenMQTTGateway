@@ -646,7 +646,7 @@ bool pub(JsonObject& data) {
 #endif
 
 #if jsonPublishing
-  String dataAsString = "";
+  String dataAsString;
   serializeJson(data, dataAsString);
   res = pubMQTT(topic.c_str(), dataAsString.c_str(), ret);
 #endif
@@ -873,7 +873,7 @@ void SYSConfig_save() {
 #  ifdef LED_ADDRESSABLE
   SYSdata["rgbb"] = SYSConfig.rgbbrightness;
 #  endif
-  String conf = "";
+  String conf;
   serializeJson(jsonBuffer, conf);
   preferences.begin(Gateway_Short_Name, false);
   int result = preferences.putString("SYSConfig", conf);
@@ -2075,7 +2075,7 @@ bool loadConfigFromFlash() {
         gatewayState = GatewayState::ERROR;
       }
       if (!json.isNull()) {
-        Log.trace(F("\nparsed json, size: %u" CR), json.memoryUsage());
+        Log.trace(F("\nparsed json, size: " CR));
         // Print json to serial port
         //serializeJsonPretty(json, Serial);
 
@@ -2995,7 +2995,7 @@ void receivingDATA(const char* topicOri, const char* datacallback) {
 
   if (!jsondata.isNull()) { // json object ok -> json decoding
     // log the received json
-    String buffer = "";
+    String buffer;
     serializeJson(jsondata, buffer);
     //Log.notice(F("[ MQTT->OMG ]: %s" CR), buffer.c_str());
 
