@@ -176,6 +176,7 @@ void announceGatewayTrigger(const char* triggerTopic,
   // Information about the device: this device trigger is a part of to tie it into the HA device registry.
   JsonDocument jsonDeviceBuffer;
   JsonObject device = jsonDeviceBuffer.to<JsonObject>();
+  JsonArray identifiers = device["identifiers"].to<JsonArray>();
 
   // A link to the webpage that can manage the configuration of this device.
   if (ethConnected) {
@@ -217,6 +218,38 @@ void announceGatewayTrigger(const char* triggerTopic,
   device["sw"] = OMG_VERSION;
   // ------------------   END DEVICE DECLARATION  ------------------ //
 
+  } else {
+    char deviceid[13];
+    memcpy(deviceid, &unique_id[0], 12);
+    deviceid[12] = '\0';
+
+    identifiers.add(deviceid);
+
+    /*Set Connection */
+    if (device_id && device_id[0] != 0) {
+      JsonArray connections = device["connections"].to<JsonArray>();
+      JsonArray connection_mac = connections.add<JsonArray>();
+      connection_mac.add("mac");
+      connection_mac.add(device_id);
+    }
+
+    //Set manufacturer
+    if (device_manufacturer && device_manufacturer[0]) {
+      device["manufacturer"] = device_manufacturer;
+    }
+
+    //Set name
+    if (device_name && device_name[0]) {
+      device["name"] = device_name;
+    }
+
+    // set The Model
+    if (device_model && device_model[0]) {
+      device["model"] = device_model;
+    }
+
+    device["via_device"] = gateway_name; //device name of the board
+  }
   sensor["device"] = device; //device representing the board
 
   if (value_template && value_template[0]) {
@@ -441,7 +474,7 @@ void createDiscovery(const char* sensor_type,
 
   JsonDocument jsonDeviceBuffer;
   JsonObject device = jsonDeviceBuffer.to<JsonObject>();
-  JsonArray identifiers = device.createNestedArray("ids");
+  JsonArray identifiers = device["ids"].to<JsonArray>();
 
   if (gateway_entity) {
     //device representing the board
@@ -467,8 +500,8 @@ void createDiscovery(const char* sensor_type,
   } else {
     //The Connections
     if (device_id[0]) {
-      JsonArray connections = device.createNestedArray("cns");
-      JsonArray connection_mac = connections.createNestedArray();
+      JsonArray connections = device["cns"].to<JsonArray>();
+      JsonArray connection_mac = connections.add<JsonArray>();
       connection_mac.add("mac");
       connection_mac.add(device_id);
       //Device representing the actual sensor/switch device
