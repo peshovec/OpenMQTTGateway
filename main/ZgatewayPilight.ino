@@ -45,9 +45,9 @@ void pilightCallback(const String& protocol, const String& message, int status,
                      size_t repeats, const String& deviceID) {
   if (status == VALID) {
     Log.trace(F("Creating RF PiLight buffer" CR));
-    StaticJsonDocument<JSON_MSG_BUFFER> RFPiLightdataBuffer;
+    JsonDocument RFPiLightdataBuffer;
     JsonObject RFPiLightdata = RFPiLightdataBuffer.to<JsonObject>();
-    StaticJsonDocument<JSON_MSG_BUFFER> jsonBuffer2;
+    JsonDocument jsonBuffer2;
     JsonObject msg = jsonBuffer2.to<JsonObject>();
 
     if (message.length() > 0) {
@@ -101,7 +101,7 @@ void pilightRawCallback(const uint16_t* pulses, size_t length) {
     return;
   }
 
-  StaticJsonDocument<JSON_MSG_BUFFER> RFPiLightdataBuffer;
+  JsonDocument RFPiLightdataBuffer;
   JsonObject RFPiLightdata = RFPiLightdataBuffer.to<JsonObject>();
 
   RFPiLightdata["format"] = "RAW";
@@ -116,7 +116,7 @@ void pilightRawCallback(const uint16_t* pulses, size_t length) {
 
 void savePilightConfig() {
   Log.trace(F("saving Pilight config" CR));
-  DynamicJsonDocument json(4096);
+  JsonDocument json;
   deserializeJson(json, rf.enabledProtocols());
 
   File configFile = SPIFFS.open("/pilight.json", "w");
@@ -134,10 +134,10 @@ void loadPilightConfig() {
   File configFile = SPIFFS.open("/pilight.json", "r");
   if (configFile) {
     Log.trace(F("opened Pilight config file" CR));
-    DynamicJsonDocument json(configFile.size() * 4);
+    JsonDocument json;
     auto error = deserializeJson(json, configFile);
     if (error) {
-      Log.error(F("deserialize config failed: %s, buffer capacity: %u" CR), error.c_str(), json.capacity());
+      Log.error(F("deserialize config failed: %s, buffer capacity: %u" CR), error.c_str(), json.overflowed());
     }
     serializeJson(json, Serial);
     if (!json.isNull()) {

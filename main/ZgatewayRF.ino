@@ -168,7 +168,7 @@ void announceGatewayTriggerTypeToHASS(uint64_t MQTTvalue) {
  */
 void RFtoX() {
   if (mySwitch.available()) {
-    StaticJsonDocument<JSON_MSG_BUFFER> RFdataBuffer;
+    JsonDocument RFdataBuffer;
     JsonObject RFdata = RFdataBuffer.to<JsonObject>();
 #  ifdef ESP32
     Log.trace(F("[RF] Rcv. RF - Task running on core :%d" CR), xPortGetCoreID());

@@ -261,7 +261,7 @@ void storeRTL_433Discovery(JsonObject& RFrtl_433_ESPdata, const char* model, con
 #  endif
 
 void rtl_433_Callback(char* message) {
-  DynamicJsonDocument jsonBuffer2(JSON_MSG_BUFFER);
+  JsonDocument jsonBuffer2;
   JsonObject RFrtl_433_ESPdata = jsonBuffer2.to<JsonObject>();
   auto error = deserializeJson(jsonBuffer2, message);
   if (error) {
