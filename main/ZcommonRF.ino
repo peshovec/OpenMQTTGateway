@@ -264,7 +264,7 @@ void RFConfig_fromJson(JsonObject& RFdata) {
 //jo["ookthreshold"] = RFConfig.newOokThreshold;
 #    endif
     // Save config into NVS (non-volatile storage)
-    String conf = "";
+    String conf;
     serializeJson(jsonBuffer, conf);
     preferences.begin(Gateway_Short_Name, false);
     int result = preferences.putString("RFConfig", conf);
