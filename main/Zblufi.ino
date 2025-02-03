@@ -86,11 +86,11 @@ struct ReceivingCommandTaskData {
 void receivingCommandTask(void* pvParameters) {
   ReceivingCommandTaskData* taskData = static_cast<ReceivingCommandTaskData*>(pvParameters);
 
-  DynamicJsonDocument json(JSON_MSG_BUFFER_MAX);
+  JsonDocument json;
   JsonObject jsonBlufi = json.to<JsonObject>();
   auto error = deserializeJson(json, taskData->data, taskData->data_len);
   if (error) {
-    Log.error(F("deserialize config failed: %s, buffer capacity: %u" CR), error.c_str(), json.capacity());
+    Log.error(F("deserialize config failed: %s, buffer capacity: %u" CR), error.c_str(), json.overflowed());
   } else {
     if (jsonBlufi.containsKey("target") && jsonBlufi["target"].is<char*>()) {
       char topic[(parameters_size)*2 + jsonBlufi["target"].size() + 1];

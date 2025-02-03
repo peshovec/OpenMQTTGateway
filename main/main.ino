@@ -96,7 +96,7 @@ bool ready_to_sleep = false;
 LEDManager ledManager;
 
 struct JsonBundle {
-  StaticJsonDocument<JSON_MSG_BUFFER> doc;
+  JsonDocument doc;
 };
 
 std::queue<std::string> jsonQueue;
@@ -109,7 +109,7 @@ SemaphoreHandle_t xQueueMutex;
 SemaphoreHandle_t xMqttMutex;
 #endif
 
-StaticJsonDocument<JSON_MSG_BUFFER> modulesBuffer;
+JsonDocument modulesBuffer;
 JsonArray modules = modulesBuffer.to<JsonArray>();
 bool ethConnected = false;
 
@@ -421,7 +421,7 @@ bool jsonDispatch(JsonObject& data) {
 }
 
 // Add a document to the queue
-boolean enqueueJsonObject(const StaticJsonDocument<JSON_MSG_BUFFER>& jsonDoc, int timeout) {
+boolean enqueueJsonObject(const JsonDocument& jsonDoc, int timeout) {
   receivedMessages++;
   if (jsonDoc.size() == 0) {
     Log.error(F("Empty JSON, skipping" CR));
@@ -454,7 +454,7 @@ boolean enqueueJsonObject(const StaticJsonDocument<JSON_MSG_BUFFER>& jsonDoc, in
 }
 
 // Semaphore check before enqueueing a document with default timeout QueueSemaphoreTimeOutLoop
-bool enqueueJsonObject(const StaticJsonDocument<JSON_MSG_BUFFER>& jsonDoc) {
+bool enqueueJsonObject(const JsonDocument& jsonDoc) {
   return enqueueJsonObject(jsonDoc, QueueSemaphoreTimeOutLoop);
 }
 
@@ -528,7 +528,7 @@ void emptyQueue() {
     return;
   }
   Log.trace(F("Dequeue JSON" CR));
-  DynamicJsonDocument jsonBuffer(JSON_MSG_BUFFER_MAX);
+  JsonDocument jsonBuffer;
   JsonObject obj = jsonBuffer.to<JsonObject>();
 #ifdef ESP32
   if (xSemaphoreTake(xQueueMutex, pdMS_TO_TICKS(QueueSemaphoreTimeOutTask)) == pdFALSE) {
@@ -543,7 +543,7 @@ void emptyQueue() {
   xSemaphoreGive(xQueueMutex);
 #endif
   if (error) {
-    Log.error(F("deserialize jsonQueue.front() failed: %s, buffer capacity: %u" CR), error.c_str(), jsonBuffer.capacity());
+    Log.error(F("deserialize jsonQueue.front() failed: %s, buffer capacity: %u" CR), error.c_str(), jsonBuffer.overflowed());
     gatewayState = GatewayState::ERROR;
   } else {
     if (jsonDispatch(obj))
@@ -832,7 +832,7 @@ void SYSConfig_fromJson(JsonObject& SYSdata) {
 
 #ifdef ESP32
 void SYSConfig_save() {
-  StaticJsonDocument<JSON_MSG_BUFFER> jsonBuffer;
+  JsonDocument jsonBuffer;
   JsonObject SYSdata = jsonBuffer.to<JsonObject>();
   SYSdata["mqtt"] = SYSConfig.mqtt;
   SYSdata["serial"] = SYSConfig.serial;
@@ -878,13 +878,13 @@ bool cmpToMainTopic(const char* topicOri, const char* toAdd) {
 
 #if defined(ESP32)
 void SYSConfig_load() {
-  StaticJsonDocument<JSON_MSG_BUFFER> jsonBuffer;
+  JsonDocument jsonBuffer;
   preferences.begin(Gateway_Short_Name, true);
   if (preferences.isKey("SYSConfig")) {
     auto error = deserializeJson(jsonBuffer, preferences.getString("SYSConfig", "{}"));
     preferences.end();
     if (error) {
-      Log.error(F("SYS config deserialization failed: %s, buffer capacity: %u" CR), error.c_str(), jsonBuffer.capacity());
+      Log.error(F("SYS config deserialization failed: %s, buffer capacity: %u" CR), error.c_str(), jsonBuffer.overflowed());
       gatewayState = GatewayState::ERROR;
       return;
     }
@@ -1792,7 +1792,7 @@ void ESPRestart(byte reason) {
   receivingDATA(subjectMQTTtoSYSsetSecondaryModule, restartCmdStr.c_str());
   delay(2000);
 #endif
-  StaticJsonDocument<128> jsonBuffer;
+  JsonDocument jsonBuffer;
   JsonObject jsondata = jsonBuffer.to<JsonObject>();
   jsondata["reason"] = reason;
   jsondata["retain"] = true;
@@ -1957,7 +1957,7 @@ void saveConfig() {
 
   Log.notice(F("Total size: %d" CR), totalSize);
 
-  DynamicJsonDocument json(512 + totalSize);
+  JsonDocument json;
 
 #  if !MQTT_BROKER_MODE
   for (int i = 0; i < 3; ++i) {
@@ -2054,10 +2054,10 @@ bool loadConfigFromFlash() {
     File configFile = SPIFFS.open("/config.json", "r");
     if (configFile) {
       Log.trace(F("opened config file" CR));
-      DynamicJsonDocument json(configFile.size() * 2);
+      JsonDocument json;
       auto error = deserializeJson(json, configFile);
       if (error) {
-        Log.error(F("deserialize config failed: %s, buffer capacity: %u" CR), error.c_str(), json.capacity());
+        Log.error(F("deserialize config failed: %s, buffer capacity: %u" CR), error.c_str(), json.overflowed());
         gatewayState = GatewayState::ERROR;
       }
       if (!json.isNull()) {
@@ -2768,7 +2768,7 @@ void eraseConfig() {
 }
 
 String stateMeasures() {
-  StaticJsonDocument<JSON_MSG_BUFFER> SYSdata;
+  JsonDocument SYSdata;
 
   SYSdata["uptime"] = uptime();
 
@@ -2930,7 +2930,7 @@ bool isAduplicateSignal(uint64_t value) {
 
 void receivingDATA(const char* topicOri, const char* datacallback) {
   std::string strTopicOri = topicOri;
-  StaticJsonDocument<JSON_MSG_BUFFER_MAX> jsonBuffer;
+  JsonDocument jsonBuffer;
   JsonObject jsondata = jsonBuffer.to<JsonObject>();
   DeserializationError error = deserializeJson(jsonBuffer, datacallback);
   if (error || jsondata.isNull()) {
@@ -3109,7 +3109,7 @@ bool checkForUpdates() {
 
   http.begin(OTA_JSON_URL, ota_cert.c_str());
   int httpCode = http.GET();
-  StaticJsonDocument<JSON_MSG_BUFFER> jsonBuffer;
+  JsonDocument jsonBuffer;
   JsonObject jsondata = jsonBuffer.to<JsonObject>();
 
   if (httpCode > 0) { //Check for the returning code
@@ -3208,7 +3208,7 @@ void MQTTHttpsFWUpdate(const char* topicOri, JsonObject& HttpsFwUpdateData) {
       Log.warning(F("Starting firmware update with %d freeHeap" CR), ESP.getFreeHeap());
       gatewayState = GatewayState::REMOTE_OTA_IN_PROGRESS;
 
-      StaticJsonDocument<JSON_MSG_BUFFER> jsondata;
+      JsonDocument jsondata;
       jsondata["release_summary"] = "Update in progress ...";
       jsondata["origin"] = subjectRLStoMQTT;
       enqueueJsonObject(jsondata);
@@ -3313,7 +3313,7 @@ void readCntParameters(int index) {
     Log.warning(F("Invalid cnt index" CR));
     return;
   }
-  StaticJsonDocument<JSON_MSG_BUFFER> jsonBuffer;
+  JsonDocument jsonBuffer;
   JsonObject jsondata = jsonBuffer.to<JsonObject>();
   jsondata["cnt_index"] = index;
   jsondata["valid_cnt"] = cnt_parameters_array[index].validConnection;

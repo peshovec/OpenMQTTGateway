@@ -109,7 +109,7 @@ unsigned long timeBetweenConnect = 0;
 unsigned long timeBetweenActive = 0;
 
 String stateBTMeasures(bool start) {
-  StaticJsonDocument<JSON_MSG_BUFFER> jsonBuffer;
+  JsonDocument jsonBuffer;
   JsonObject jo = jsonBuffer.to<JsonObject>();
   jo["bleconnect"] = BTConfig.bleConnect;
   jo["interval"] = BTConfig.BLEinterval;
@@ -254,7 +254,7 @@ void BTConfig_fromJson(JsonObject& BTdata, bool startup = false) {
   }
 
   if (BTdata["save"].as<bool>()) {
-    StaticJsonDocument<JSON_MSG_BUFFER> jsonBuffer;
+    JsonDocument jsonBuffer;
     JsonObject jo = jsonBuffer.to<JsonObject>();
     jo["bleconnect"] = BTConfig.bleConnect;
     jo["interval"] = BTConfig.BLEinterval;
@@ -289,14 +289,14 @@ void BTConfig_fromJson(JsonObject& BTdata, bool startup = false) {
 }
 
 void BTConfig_load() {
-  StaticJsonDocument<JSON_MSG_BUFFER> jsonBuffer;
+  JsonDocument jsonBuffer;
   preferences.begin(Gateway_Short_Name, true);
   if (preferences.isKey("BTConfig")) {
     auto error = deserializeJson(jsonBuffer, preferences.getString("BTConfig", "{}"));
     preferences.end();
     Log.notice(F("BT config loaded" CR));
     if (error) {
-      Log.error(F("BT config deserialization failed: %s, buffer capacity: %u" CR), error.c_str(), jsonBuffer.capacity());
+      Log.error(F("BT config deserialization failed: %s, buffer capacity: %u" CR), error.c_str(), jsonBuffer.overflowed());
       return;
     }
     if (jsonBuffer.isNull()) {
@@ -425,7 +425,7 @@ void updateDevicesStatus() {
     if (isTracker) { // We apply the offline status only for tracking device, can be extended further to all the devices
       if ((p->lastUpdate != 0) && (p->lastUpdate < (now - BTConfig.presenceAwayTimer) && (now > BTConfig.presenceAwayTimer)) &&
           (BTConfig.ignoreWBlist || ((!oneWhite || isWhite(p)) && !isBlack(p)))) { // Only if WBlist is disabled OR ((no white MAC OR this MAC is white) AND not a black listed MAC)) {
-        StaticJsonDocument<JSON_MSG_BUFFER> BLEdataBuffer;
+        JsonDocument BLEdataBuffer;
         JsonObject BLEdata = BLEdataBuffer.to<JsonObject>();
         BLEdata["id"] = p->macAdr;
         BLEdata["state"] = "offline";
@@ -439,7 +439,7 @@ void updateDevicesStatus() {
     if (p->sensorModel_id == TheengsDecoder::BLE_ID_NUM::BC08) {
       if ((p->lastUpdate != 0) && (p->lastUpdate < (now - BTConfig.movingTimer) && (now > BTConfig.movingTimer)) &&
           (BTConfig.ignoreWBlist || ((!oneWhite || isWhite(p)) && !isBlack(p)))) { // Only if WBlist is disabled OR ((no white MAC OR this MAC is white) AND not a black listed MAC)) {
-        StaticJsonDocument<JSON_MSG_BUFFER> BLEdataBuffer;
+        JsonDocument BLEdataBuffer;
         JsonObject BLEdata = BLEdataBuffer.to<JsonObject>();
         BLEdata["id"] = p->macAdr;
         BLEdata["state"] = "offline";
@@ -622,7 +622,7 @@ void procBLETask(void* pvParameters) {
     //esp_task_wdt_reset();
     if (!BTProcessLock) {
       Log.trace(F("Creating BLE buffer" CR));
-      StaticJsonDocument<JSON_MSG_BUFFER> BLEdataBuffer;
+      JsonDocument BLEdataBuffer;
       JsonObject BLEdata = BLEdataBuffer.to<JsonObject>();
       BLEdata["id"] = advertisedDevice->getAddress().toString();
       BLEdata["mac_type"] = advertisedDevice->getAddress().getType();
@@ -653,7 +653,7 @@ void procBLETask(void* pvParameters) {
           int serviceDataCount = advertisedDevice->getServiceDataCount();
           Log.trace(F("Get services data number: %d" CR), serviceDataCount);
           for (int j = 0; j < serviceDataCount; j++) {
-            StaticJsonDocument<JSON_MSG_BUFFER> BLEdataBufferTemp;
+            JsonDocument BLEdataBufferTemp;
             JsonObject BLEdataTemp = BLEdataBufferTemp.to<JsonObject>();
             BLEdataBufferTemp = BLEdataBuffer;
             std::string service_data = convertServiceData(advertisedDevice->getServiceData(j));
@@ -979,14 +979,14 @@ void launchBTDiscovery(bool overrideDiscovery) {
                             stateClassNone);
           }
           if (!properties.empty()) {
-            StaticJsonDocument<JSON_MSG_BUFFER> jsonBuffer;
+            JsonDocument jsonBuffer;
             auto error = deserializeJson(jsonBuffer, properties);
             if (error) {
               if (jsonBuffer.overflowed()) {
                 // This should not happen if JSON_MSG_BUFFER is large enough for
                 // the Theengs json properties
                 Log.error(F("JSON deserialization of Theengs properties overflowed (error %s), buffer capacity: %u. Program might crash. Properties json: %s" CR),
-                          error.c_str(), jsonBuffer.capacity(), properties.c_str());
+                          error.c_str(), jsonBuffer.overflowed(), properties.c_str());
               } else {
                 Log.error(F("JSON deserialization of Theengs properties errored: %" CR),
                           error.c_str());
@@ -1278,7 +1278,7 @@ void PublishDeviceData(JsonObject& BLEdata) {
       }
 
       if (isTracker) {
-        StaticJsonDocument<JSON_MSG_BUFFER> BLEdataBuffer;
+        JsonDocument BLEdataBuffer;
         JsonObject TrackerSyncdata = BLEdataBuffer.to<JsonObject>();
         TrackerSyncdata["gatewayid"] = gateway_name;
         TrackerSyncdata["trackerid"] = BLEdata["id"].as<const char*>();
@@ -1384,7 +1384,7 @@ void immediateBTAction(void* pvParameters) {
     } else {
       Log.error(F("BLE busy - immediateBTAction not sent" CR));
       gatewayState = GatewayState::ERROR;
-      StaticJsonDocument<JSON_MSG_BUFFER> BLEdataBuffer;
+      JsonDocument BLEdataBuffer;
       JsonObject BLEdata = BLEdataBuffer.to<JsonObject>();
       BLEdata["id"] = BLEactions.back().addr.toString().c_str();
       BLEdata["success"] = false;

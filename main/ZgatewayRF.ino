@@ -110,7 +110,7 @@ void RFtoMQTTdiscovery(uint64_t MQTTvalue) {
 
 void RFtoX() {
   if (mySwitch.available()) {
-    StaticJsonDocument<JSON_MSG_BUFFER> RFdataBuffer;
+    JsonDocument RFdataBuffer;
     JsonObject RFdata = RFdataBuffer.to<JsonObject>();
     Log.trace(F("Rcv. RF" CR));
 #  ifdef ESP32

@@ -173,7 +173,7 @@ void enableActiveReceiver() {
 
 String stateRFMeasures() {
   //Publish RTL_433 state
-  StaticJsonDocument<JSON_MSG_BUFFER> jsonBuffer;
+  JsonDocument jsonBuffer;
   JsonObject RFdata = jsonBuffer.to<JsonObject>();
   RFdata["active"] = RFConfig.activeReceiver;
 #  if defined(ZradioCC1101) || defined(ZradioSX127x)
@@ -254,7 +254,7 @@ void RFConfig_fromJson(JsonObject& RFdata) {
     }
   }
   if (RFdata["save"].as<bool>()) {
-    StaticJsonDocument<JSON_MSG_BUFFER> jsonBuffer;
+    JsonDocument jsonBuffer;
     JsonObject jo = jsonBuffer.to<JsonObject>();
     jo["frequency"] = RFConfig.frequency;
     jo["active"] = RFConfig.activeReceiver;
@@ -283,13 +283,13 @@ void RFConfig_init() {
 
 void RFConfig_load() {
 #  ifdef ESP32
-  StaticJsonDocument<JSON_MSG_BUFFER> jsonBuffer;
+  JsonDocument jsonBuffer;
   preferences.begin(Gateway_Short_Name, true);
   if (preferences.isKey("RFConfig")) {
     auto error = deserializeJson(jsonBuffer, preferences.getString("RFConfig", "{}"));
     preferences.end();
     if (error) {
-      Log.error(F("RF Config deserialization failed: %s, buffer capacity: %u" CR), error.c_str(), jsonBuffer.capacity());
+      Log.error(F("RF Config deserialization failed: %s, buffer capacity: %u" CR), error.c_str(), jsonBuffer.overflowed());
       return;
     }
     if (jsonBuffer.isNull()) {
