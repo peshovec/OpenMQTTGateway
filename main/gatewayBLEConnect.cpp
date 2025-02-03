@@ -80,7 +80,7 @@ bool zBLEConnect::processActions(std::vector<BLEAction>& actions) {
   if (actions.size() > 0) {
     for (auto& it : actions) {
       if (NimBLEAddress(it.addr) == m_pClient->getPeerAddress()) {
-        DynamicJsonDocument BLEdataBuffer(JSON_MSG_BUFFER);
+        JsonDocument BLEdataBuffer;
         JsonObject BLEdata = BLEdataBuffer.to<JsonObject>();
         BLEdata["id"] = m_pClient->getPeerAddress().toString();
         BLEdata["service"] = it.service.toString();
@@ -139,7 +139,7 @@ void LYWSD03MMC_connect::notifyCB(NimBLERemoteCharacteristic* pChar, uint8_t* pD
 
     if (length == 5) {
       Log.trace(F("Device identified creating BLE buffer" CR));
-      DynamicJsonDocument BLEdataBuffer(JSON_MSG_BUFFER);
+      JsonDocument BLEdataBuffer;
       JsonObject BLEdata = BLEdataBuffer.to<JsonObject>();
       auto mac_addr = m_pClient->getPeerAddress().toString();
       for (std::vector<BLEdevice*>::iterator it = devices.begin(); it != devices.end(); ++it) {
@@ -209,7 +209,7 @@ void DT24_connect::notifyCB(NimBLERemoteCharacteristic* pChar, uint8_t* pData, s
       // https://github.com/NiceLabs/atorch-console/blob/master/docs/protocol-design.md#dc-meter-report
       // Data comes as two packets ( 20 and 16 ), and am only processing first
       Log.trace(F("Device identified creating BLE buffer" CR));
-      DynamicJsonDocument BLEdataBuffer(JSON_MSG_BUFFER);
+      JsonDocument BLEdataBuffer;
       JsonObject BLEdata = BLEdataBuffer.to<JsonObject>();
       auto mac_address = m_pClient->getPeerAddress().toString();
       BLEdata["model"] = "DT24";
@@ -265,7 +265,7 @@ void BM2_connect::notifyCB(NimBLERemoteCharacteristic* pChar, uint8_t* pData, si
     Log.trace(F("Callback from %s characteristic" CR), pChar->getUUID().toString().c_str());
     if (length == 16) {
       Log.trace(F("Device identified creating BLE buffer" CR));
-      DynamicJsonDocument BLEdataBuffer(JSON_MSG_BUFFER);
+      JsonDocument BLEdataBuffer;
       JsonObject BLEdata = BLEdataBuffer.to<JsonObject>();
       BLEdata["model"] = "BM2 Battery Monitor";
       BLEdata["id"] = m_pClient->getPeerAddress().toString();
@@ -350,7 +350,7 @@ void HHCCJCY01HHCC_connect::publishData() {
       value = pChar2->readValue();
       const char* val2 = value.c_str();
       batteryValue = val2[0];
-      DynamicJsonDocument BLEdataBuffer(JSON_MSG_BUFFER);
+      JsonDocument BLEdataBuffer;
       JsonObject BLEdata = BLEdataBuffer.to<JsonObject>();
       BLEdata["model"] = "HHCCJCY01HHCC";
       BLEdata["id"] = m_pClient->getPeerAddress().toString();
@@ -375,7 +375,7 @@ void XMWSDJ04MMC_connect::notifyCB(NimBLERemoteCharacteristic* pChar, uint8_t* p
 
     if (length == 6) {
       Log.trace(F("Device identified creating BLE buffer" CR));
-      DynamicJsonDocument BLEdataBuffer(JSON_MSG_BUFFER);
+      JsonDocument BLEdataBuffer;
       JsonObject BLEdata = BLEdataBuffer.to<JsonObject>();
       auto mac_address = m_pClient->getPeerAddress().toString();
       BLEdata["model"] = "XMWSDJ04MMC";
@@ -488,7 +488,7 @@ bool SBS1_connect::processActions(std::vector<BLEAction>& actions) {
 
         it.complete = result;
         if (result || it.ttl <= 1) {
-          StaticJsonDocument<JSON_MSG_BUFFER> BLEdataBuffer;
+          JsonDocument BLEdataBuffer;
           JsonObject BLEdata = BLEdataBuffer.to<JsonObject>();
           BLEdata["id"] = m_pClient->getPeerAddress().toString();
           BLEdata["state"] = std::string(it.value);
@@ -583,7 +583,7 @@ bool SBBT_connect::processActions(std::vector<BLEAction>& actions) {
 
         it.complete = result;
         if (result || it.ttl <= 1) {
-          StaticJsonDocument<JSON_MSG_BUFFER> BLEdataBuffer;
+          JsonDocument BLEdataBuffer;
           JsonObject BLEdata = BLEdataBuffer.to<JsonObject>();
           BLEdata["id"] = it.addr.toString();
           if (value != -99 || value != -1)
@@ -685,7 +685,7 @@ bool SBCU_connect::processActions(std::vector<BLEAction>& actions) {
 
         it.complete = result;
         if (result || it.ttl <= 1) {
-          StaticJsonDocument<JSON_MSG_BUFFER> BLEdataBuffer;
+          JsonDocument BLEdataBuffer;
           JsonObject BLEdata = BLEdataBuffer.to<JsonObject>();
           BLEdata["id"] = it.addr.toString();
           if (value != -99 || value != -1)
