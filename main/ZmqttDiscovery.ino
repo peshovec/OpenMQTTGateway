@@ -137,7 +137,7 @@ void announceDeviceTrigger(bool use_gateway_info, char* topic, char* type, char*
   /* Set The Devices */
   JsonDocument jsonDeviceBuffer;
   JsonObject device = jsonDeviceBuffer.to<JsonObject>();
-  JsonArray identifiers = device.createNestedArray("identifiers");
+  JsonArray identifiers = device["identifiers"].to<JsonArray>();
 
   if (use_gateway_info) {
     device["name"] = gateway_name;
@@ -162,8 +162,8 @@ void announceDeviceTrigger(bool use_gateway_info, char* topic, char* type, char*
 
     /*Set Connection */
     if (device_id && device_id[0] != 0) {
-      JsonArray connections = device.createNestedArray("connections");
-      JsonArray connection_mac = connections.createNestedArray();
+      JsonArray connections = device["connections"].to<JsonArray>();
+      JsonArray connection_mac = connections.add<JsonArray>();
       connection_mac.add("mac");
       connection_mac.add(device_id);
     }
@@ -398,7 +398,7 @@ void createDiscovery(const char* sensor_type,
 
   JsonDocument jsonDeviceBuffer;
   JsonObject device = jsonDeviceBuffer.to<JsonObject>();
-  JsonArray identifiers = device.createNestedArray("ids");
+  JsonArray identifiers = device["ids"].to<JsonArray>();
 
   if (gateway_entity) {
     //device representing the board
@@ -424,8 +424,8 @@ void createDiscovery(const char* sensor_type,
   } else {
     //The Connections
     if (device_id[0]) {
-      JsonArray connections = device.createNestedArray("cns");
-      JsonArray connection_mac = connections.createNestedArray();
+      JsonArray connections = device["cns"].to<JsonArray>();
+      JsonArray connection_mac = connections.add<JsonArray>();
       connection_mac.add("mac");
       connection_mac.add(device_id);
       //Device representing the actual sensor/switch device
