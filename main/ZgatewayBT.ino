@@ -279,7 +279,7 @@ void BTConfig_fromJson(JsonObject& BTdata, bool startup = false) {
     jo["forcepscn"] = BTConfig.forcePassiveScan;
     jo["enabled"] = BTConfig.enabled;
     // Save config into NVS (non-volatile storage)
-    String conf = "";
+    String conf;
     serializeJson(jsonBuffer, conf);
     preferences.begin(Gateway_Short_Name, false);
     int result = preferences.putString("BTConfig", conf);
