@@ -248,7 +248,7 @@ void XtoRF2(const char* topicOri, JsonObject& RF2data) { // json object decoding
     int boolSWITCHTYPE = RF2data["switchType"] | 99;
     bool success = false;
     if (boolSWITCHTYPE != 99) {
-      NewRemoteReceiver::disable();
+      disableCurrentReceiver();
       pinMode(RF_EMITTER_GPIO, OUTPUT);
       initCC1101();
       Log.trace(F("MQTTtoRF2 switch type ok" CR));
@@ -266,7 +266,6 @@ void XtoRF2(const char* topicOri, JsonObject& RF2data) { // json object decoding
           valueUNIT = 0;
         if (valuePERIOD == 0)
           valuePERIOD = 272;
-        disableCurrentReceiver();
         NewRemoteTransmitter transmitter(valueCODE, RF_EMITTER_GPIO, valuePERIOD, RF2_EMITTER_REPEAT);
         Log.trace(F("Sending" CR));
         if (valueGROUP) {
@@ -283,7 +282,6 @@ void XtoRF2(const char* topicOri, JsonObject& RF2data) { // json object decoding
           }
         }
         Log.notice(F("MQTTtoRF2 OK" CR));
-        enableActiveReceiver();
 
         success = true;
       }
