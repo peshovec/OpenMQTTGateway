@@ -43,8 +43,12 @@ void initCC1101() {
     if (ELECHOUSE_cc1101.getCC1101()) {
       Log.notice(F("C1101 spi Connection OK" CR));
       ELECHOUSE_cc1101.Init();
-      ELECHOUSE_cc1101.setDRate(4.8); // expected is to increace reciver range
+      ELECHOUSE_cc1101.setDRate(2.4); // expected is to increace reciver range
       ELECHOUSE_cc1101.SetRx(RFConfig.frequency);
+      ELECHOUSE_cc1101.SpiWriteReg(CC1101_AGCCTRL2, 0x04); // sensitivity
+      //ELECHOUSE_cc1101.SpiWriteReg(CC1101_MDMCFG3, 0x32); // data rate
+      ELECHOUSE_cc1101.SpiWriteReg(CC1101_MDMCFG4, 0xA7); // bandwith
+      ELECHOUSE_cc1101.SpiWriteReg(CC1101_PKTLEN, 0); // packet leng - probably direct mode
       break;
     } else {
       Log.error(F("C1101 spi Connection Error" CR));
