@@ -152,6 +152,7 @@ void enableActiveReceiver() {
   switch (RFConfig.activeReceiver) {
 #  ifdef ZgatewayPilight
     case ACTIVE_PILIGHT:
+      disableCurrentReceiver(); // cleanups
       initCC1101();
       enablePilightReceive();
       currentReceiver = ACTIVE_PILIGHT;
@@ -159,6 +160,7 @@ void enableActiveReceiver() {
 #  endif
 #  ifdef ZgatewayRF
     case ACTIVE_RF:
+      disableCurrentReceiver(); // cleanups
       initCC1101();
       enableRFReceive(RFConfig.frequency, RF_RECEIVER_GPIO, RF_EMITTER_GPIO);
       currentReceiver = ACTIVE_RF;
@@ -166,13 +168,14 @@ void enableActiveReceiver() {
 #  endif
 #  ifdef ZgatewayRTL_433
     case ACTIVE_RTL:
-      initCC1101();
+      disableCurrentReceiver(); // cleanups
       enableRTLreceive();
       currentReceiver = ACTIVE_RTL;
       break;
 #  endif
 #  ifdef ZgatewayRF2
     case ACTIVE_RF2:
+      disableCurrentReceiver(); // cleanups
       initCC1101();
       enableRF2Receive();
       currentReceiver = ACTIVE_RF2;
