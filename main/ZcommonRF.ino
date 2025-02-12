@@ -43,12 +43,22 @@ void initCC1101() {
     if (ELECHOUSE_cc1101.getCC1101()) {
       Log.notice(F("C1101 spi Connection OK" CR));
       ELECHOUSE_cc1101.Init();
-      ELECHOUSE_cc1101.setDRate(2.4); // expected is to increace reciver range
+      ELECHOUSE_cc1101.setDRate(4.8); // expected is to increace reciver range
+//      ELECHOUSE_cc1101.setDeviation(200); // expected is to increace reciver range
+      ELECHOUSE_cc1101.setRxBW(81); // expected is to increace reciver range
       ELECHOUSE_cc1101.SetRx(RFConfig.frequency);
-      ELECHOUSE_cc1101.SpiWriteReg(CC1101_AGCCTRL2, 0x04); // sensitivity
+      ELECHOUSE_cc1101.SpiWriteReg(CC1101_FSCTRL1, 0x06); // sensitivity
+      ELECHOUSE_cc1101.SpiWriteReg(CC1101_AGCCTRL0, 0x91); // sensitivity 0x92 for rx 58, 0x91 if rx bandtidth is 68 or 81
+      ELECHOUSE_cc1101.SpiWriteReg(CC1101_AGCCTRL1, 0x40); // sensitivity
+      ELECHOUSE_cc1101.SpiWriteReg(CC1101_AGCCTRL2, 0x03); // sensitivity
+      ELECHOUSE_cc1101.SpiWriteReg(CC1101_FREND1, 0x56); // sensitivity
+      ELECHOUSE_cc1101.SpiWriteReg(CC1101_TEST2, 0x81); // sensitivity
+      ELECHOUSE_cc1101.SpiWriteReg(CC1101_TEST1, 0x35); // sensitivity
+      ELECHOUSE_cc1101.SpiWriteReg(CC1101_FIFOTHR, 0x47); // sensitivity
+
       //ELECHOUSE_cc1101.SpiWriteReg(CC1101_MDMCFG3, 0x32); // data rate
-      ELECHOUSE_cc1101.SpiWriteReg(CC1101_MDMCFG4, 0xA7); // bandwith
-      ELECHOUSE_cc1101.SpiWriteReg(CC1101_PKTLEN, 0); // packet leng - probably direct mode
+      //ELECHOUSE_cc1101.SpiWriteReg(CC1101_MDMCFG4, 0xA7); // bandwith
+      //ELECHOUSE_cc1101.SpiWriteReg(CC1101_PKTLEN, 0); // packet leng - probably direct mode
       break;
     } else {
       Log.error(F("C1101 spi Connection Error" CR));
