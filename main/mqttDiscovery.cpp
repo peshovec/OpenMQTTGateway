@@ -25,7 +25,6 @@
 */
 
 #include "User_config.h"
-
 #ifdef ZmqttDiscovery
 #  include "TheengsCommon.h"
 
@@ -131,6 +130,9 @@ const char* availableHASSUnits[] = {"A",
                                     "wb²"
 };
 
+#ifdef ESP32
+ #include "esp_mac.h"
+#endif
 String getMacAddress() {
   uint8_t baseMac[6];
   char baseMacChr[13] = {0};
