@@ -23,7 +23,9 @@
 */
 #include "User_config.h"
 #if defined(ZwebUI) && defined(ESP32)
-#  include <SPIFFS.h>
+#  include <ArduinoJson.h>
+#  include <LittleFS.h>
+#  define SPIFFS LittleFS
 #  include <WebServer.h> // Docs for this are here - https://github.com/espressif/arduino-esp32/tree/master/libraries/WebServer
 #  include <WiFi.h>
 
