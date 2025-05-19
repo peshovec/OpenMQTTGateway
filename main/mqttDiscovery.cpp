@@ -25,6 +25,7 @@
 */
 
 #include "User_config.h"
+
 #ifdef ZmqttDiscovery
 #  include "TheengsCommon.h"
 
@@ -213,7 +214,7 @@ void announceGatewayTrigger(const char* triggerTopic,
                             const char* object_id,
                             const char* value_template) {
   //Create The Json
-  StaticJsonDocument<JSON_MSG_BUFFER> jsonBuffer;
+  JsonDocument jsonBuffer;
   JsonObject sensor = jsonBuffer.to<JsonObject>();
 
   /**
@@ -276,7 +277,7 @@ void announceGatewayTrigger(const char* triggerTopic,
   // -------------------------------------------------------------------------------------------------
 
   // Information about the device: this device trigger is a part of to tie it into the HA device registry.
-  StaticJsonDocument<JSON_MSG_BUFFER> jsonDeviceBuffer;
+  JsonDocument jsonDeviceBuffer;
   JsonObject device = jsonDeviceBuffer.to<JsonObject>();
 
   // A link to the webpage that can manage the configuration of this device.
@@ -388,7 +389,7 @@ void createDiscovery(const char* sensor_type,
                      const char* payload_available, const char* payload_not_available, bool gateway_entity, const char* cmd_topic,
                      const char* device_name, const char* device_manufacturer, const char* device_model, const char* device_id, bool retainCmd,
                      const char* state_class, const char* state_off, const char* state_on, const char* enum_options, const char* command_template) {
-  StaticJsonDocument<JSON_MSG_BUFFER> jsonBuffer;
+  JsonDocument jsonBuffer;
   JsonObject sensor = jsonBuffer.to<JsonObject>();
 
   // If a component cannot render it's state (f.i. KAKU relays) no state topic
@@ -541,7 +542,7 @@ void createDiscovery(const char* sensor_type,
     sensor["options"] = enum_options;
   }
 
-  StaticJsonDocument<JSON_MSG_BUFFER> jsonDeviceBuffer;
+  JsonDocument jsonDeviceBuffer;
   JsonObject device = jsonDeviceBuffer.to<JsonObject>();
   JsonArray identifiers = device.createNestedArray("ids");
 
