@@ -301,7 +301,6 @@ void announceGatewayTrigger(const char* triggerTopic,
 
   // A list of IDs that uniquely identify the device. For example a serial number.
   String unique_id = String(getMacAddress());
-  JsonArray identifiers = device.createNestedArray("identifiers");
   identifiers.add(unique_id);
 
   // The manufacturer of the device.
@@ -321,38 +320,6 @@ void announceGatewayTrigger(const char* triggerTopic,
   device["sw"] = OMG_VERSION;
   // ------------------   END DEVICE DECLARATION  ------------------ //
 
-  } else {
-    char deviceid[13];
-    memcpy(deviceid, &unique_id[0], 12);
-    deviceid[12] = '\0';
-
-    identifiers.add(deviceid);
-
-    /*Set Connection */
-    if (device_id && device_id[0] != 0) {
-      JsonArray connections = device["connections"].to<JsonArray>();
-      JsonArray connection_mac = connections.add<JsonArray>();
-      connection_mac.add("mac");
-      connection_mac.add(device_id);
-    }
-
-    //Set manufacturer
-    if (device_manufacturer && device_manufacturer[0]) {
-      device["manufacturer"] = device_manufacturer;
-    }
-
-    //Set name
-    if (device_name && device_name[0]) {
-      device["name"] = device_name;
-    }
-
-    // set The Model
-    if (device_model && device_model[0]) {
-      device["model"] = device_model;
-    }
-
-    device["via_device"] = gateway_name; //device name of the board
-  }
   sensor["device"] = device; //device representing the board
 
   if (value_template && value_template[0]) {

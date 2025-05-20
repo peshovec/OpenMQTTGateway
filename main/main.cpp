@@ -395,19 +395,6 @@ std::unique_ptr< ::Client> eClient;
 std::unique_ptr<PicoMQTT::Client> mqtt;
 #endif
 
-template <typename T> // Declared here to avoid pre-compilation issue (missing "template" in auto declaration by pio)
-void Config_update(JsonObject& data, const char* key, T& var);
-template <typename T>
-void Config_update(JsonObject& data, const char* key, T& var) {
-  if (data[key].as<JsonVariant>()) {
-    if (var != data[key].as<T>()) {
-      var = data[key].as<T>();
-      Log.notice(F("Config %s changed to: %T" CR), key, data[key].as<T>());
-    } else {
-      Log.notice(F("Config %s unchanged, currently: %T" CR), key, data[key].as<T>());
-    }
-  }
-}
 
 /*
  * Dispatch json messages towards the communication layer
@@ -3127,8 +3114,9 @@ bool checkForUpdates() {
 
   http.begin(OTA_JSON_URL, ota_cert.c_str());
   int httpCode = http.GET();
-  JsonDocument jsonBuffer;
-  JsonObject jsondata = jsonBuffer.to<JsonObject>();
+  //JsonDocument jsonBuffer;
+  //JsonObject jsondata = jsonBuffer.to<JsonObject>();
+  JsonObject jsondata;
 
   if (httpCode > 0) { //Check for the returning code
     String payload = http.getString();
@@ -3331,8 +3319,9 @@ void readCntParameters(int index) {
     Log.warning(F("Invalid cnt index" CR));
     return;
   }
-  JsonDocument jsonBuffer;
-  JsonObject jsondata = jsonBuffer.to<JsonObject>();
+  //JsonDocument jsonBuffer;
+  //JsonObject jsondata = jsonBuffer.to<JsonObject>();
+  JsonObject jsondata;
   jsondata["cnt_index"] = index;
   jsondata["valid_cnt"] = cnt_parameters_array[index].validConnection;
   if (cnt_parameters_array[index].server_cert.length() > MIN_CERT_LENGTH) {
